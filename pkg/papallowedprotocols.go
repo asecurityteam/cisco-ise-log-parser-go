@@ -58,6 +58,7 @@ type PAPAllowedProtocolsLogMessage struct {
 	AcctTerminateCause                   string
 	AcsSessionID                         string
 	AirespaceWlanId                      string
+	AllowEasyWiredSession                string
 	AuthenticationIdentityStore          string
 	AuthenticationMethod                 string
 	AuthenticationStatus                 string
@@ -70,6 +71,7 @@ type PAPAllowedProtocolsLogMessage struct {
 	CalledStationID                      string
 	CallingStationID                     string
 	ChargeableUserIdentity               string
+	CiscoAvPair                          []string
 	Class                                []string
 	ConfigVersionId                      string
 	DC                                   []string
@@ -94,6 +96,7 @@ type PAPAllowedProtocolsLogMessage struct {
 	IdentitySelectionMatchedRule         string
 	IsMachineAuthentication              string
 	IsThirdPartyDeviceFlow               string
+	L                                    string
 	Location                             string
 	LocationCapable                      string
 	ModelName                            string
@@ -103,9 +106,9 @@ type PAPAllowedProtocolsLogMessage struct {
 	NASPortId                            string
 	NASPortType                          string
 	Name                                 string
-	NetworkDeviceProfile                 string
 	NetworkDeviceGroups                  map[string]map[string]string
 	NetworkDeviceName                    string
+	NetworkDeviceProfile                 string
 	NetworkDeviceProfileId               string
 	NetworkDeviceProfileName             string
 	OU                                   string
@@ -114,6 +117,7 @@ type PAPAllowedProtocolsLogMessage struct {
 	RadiusFlowType                       string
 	RequestLatency                       string
 	Role                                 string
+	SAMAccountName                       string
 	SSID                                 string
 	Security                             string
 	SelectedAccessService                string
@@ -127,6 +131,7 @@ type PAPAllowedProtocolsLogMessage struct {
 	TLSCipher                            string
 	TLSVersion                           string
 	Team                                 string
+	TextEncodedORAddress                 string
 	TunnelClientEndpoint                 string
 	TunnelMediumType                     string
 	TunnelPrivateGroupID                 string
