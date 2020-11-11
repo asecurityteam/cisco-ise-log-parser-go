@@ -573,9 +573,7 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 
 	fields = strings.Split(body, ", ")
 	for i := range fields {
-		go func(i int) {
-			fields[i] = strings.ReplaceAll(strings.ReplaceAll(fields[i], "{COMMA}", ","), "{SEMICOLON}", ";")
-		}(i)
+		fields[i] = strings.ReplaceAll(strings.ReplaceAll(fields[i], "{COMMA}", ","), "{SEMICOLON}", ";")
 	}
 	return title, fields, nil
 }
