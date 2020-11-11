@@ -1,8 +1,8 @@
-package parser
+package ciscoiselogparser
 
 import "time"
 
-type PAPAllowedProtocolsLog struct {
+type EAPPEAPAllowedProtocolsLog struct {
 	AccessService            string     `json:"access_service,omitempty"`
 	AccountingAuthentication string     `json:"accounting_authentication,omitempty"`
 	AccountingSessionID      string     `json:"accounting_session_id,omitempty"`
@@ -23,6 +23,7 @@ type PAPAllowedProtocolsLog struct {
 	Logtype                  string     `json:"logtype,omitempty"`
 	Message                  LogMessage `json:"message,omitempty"`
 	Mnemonic                 string     `json:"mnemonic,omitempty"`
+	NasIdentifier            string     `json:"nas_identifier,omitempty"`
 	NasIPAddress             string     `json:"nas_ip_address,omitempty"`
 	NasPort                  string     `json:"nas_port,omitempty"`
 	NasPortType              string     `json:"nas_port_type,omitempty"`
@@ -33,11 +34,14 @@ type PAPAllowedProtocolsLog struct {
 	Signature                string     `json:"signature,omitempty"`
 	Src                      string     `json:"src,omitempty"`
 	Time                     time.Time  `json:"time,omitempty"`
+	TunnelMediumType         string     `json:"tunnel_medium_type,omitempty"`
+	TunnelPrivateGroupID     string     `json:"tunnel_private_group_id,omitempty"`
+	TunnelType               string     `json:"tunnel_type,omitempty"`
 	User                     string     `json:"user,omitempty"`
+	WlanID                   string     `json:"wlan_id,omitempty"`
 }
 
-type PAPAllowedProtocolsLogMessage struct {
-	ADErrorDetails                       string
+type EAPPEAPAllowedProtocolsLogMessage struct {
 	ADUserCandidateIdentities            string
 	ADUserDNSDomain                      string
 	ADUserJoinPoint                      string
@@ -46,10 +50,13 @@ type PAPAllowedProtocolsLogMessage struct {
 	ADUserResolvedDNs                    string
 	ADUserResolvedIdentities             string
 	ADUserSamAccountName                 string
+	AKI                                  string
 	AcctAuthentic                        string
 	AcctDelayTime                        string
+	AcctInputGigawords                   string
 	AcctInputOctets                      string
 	AcctInputPackets                     string
+	AcctOutputGigawords                  string
 	AcctOutputOctets                     string
 	AcctOutputPackets                    string
 	AcctSessionId                        string
@@ -64,42 +71,49 @@ type PAPAllowedProtocolsLogMessage struct {
 	AuthenticationStatus                 string
 	AuthorizationPolicyMatchedRule       string
 	CPMSessionID                         string
-	CVPN3000ASAPIX7xClientType           string
-	CVPN3000ASAPIX7xSessionSubtype       string
-	CVPN3000ASAPIX7xSessionType          string
-	CVPN3000ASAPIX7xTunnelGroupName      string
 	CalledStationID                      string
 	CallingStationID                     string
 	ChargeableUserIdentity               string
 	CiscoAvPair                          []string
 	Class                                []string
+	Company                              string
 	ConfigVersionId                      string
-	DC                                   []string
 	DTLSSupport                          string
+	DaysToExpiry                         string
+	Department                           string
 	DestinationIPAddress                 string
 	DestinationPort                      string
+	DetailedInfo                         string
 	DeviceIPAddress                      string
 	DeviceType                           string
+	DistinguishedName                    string
 	EapAuthentication                    string
 	EapTunnel                            string
+	EmployeeID                           string
 	EndPointMACAddress                   string
 	EndPointMatchedProfile               string
+	EventTimestamp                       string
+	ExtendedKeyUsageName                 []string
+	ExtendedKeyUsageOID                  []string
+	FailureReason                        string
 	FramedIPAddress                      string
 	FramedMTU                            string
-	FramedProtocol                       string
 	HostIdentityGroup                    string
 	IPSEC                                string
 	ISEPolicySetName                     string
-	IdentityAccessRestricted             string
 	IdentityGroup                        string
 	IdentityPolicyMatchedRule            string
 	IdentitySelectionMatchedRule         string
 	IsMachineAuthentication              string
+	IsMachineIdentity                    string
 	IsThirdPartyDeviceFlow               string
+	Issuer                               string
+	IssuerCommonName                     string
+	IssuerDomainComponent                []string
+	KeyUsage                             []int
 	L                                    string
 	Location                             string
 	LocationCapable                      string
-	ModelName                            string
 	NASIPAddress                         string
 	NASIdentifier                        string
 	NASPort                              string
@@ -111,11 +125,11 @@ type PAPAllowedProtocolsLogMessage struct {
 	NetworkDeviceProfile                 string
 	NetworkDeviceProfileId               string
 	NetworkDeviceProfileName             string
-	OU                                   string
 	PostureAssessmentStatus              string
 	Protocol                             string
 	RadiusFlowType                       string
 	RequestLatency                       string
+	Response                             string
 	Role                                 string
 	SAMAccountName                       string
 	SSID                                 string
@@ -123,19 +137,25 @@ type PAPAllowedProtocolsLogMessage struct {
 	SelectedAccessService                string
 	SelectedAuthenticationIdentityStores string
 	SelectedAuthorizationProfiles        string
+	SerialNumber                         string
 	ServiceType                          string
-	SoftwareVersion                      string
 	State                                []string
 	Step                                 []int
 	StepData                             map[string]string
+	StepLatency                          string
+	Subject                              string
+	SubjectAlternativeName               string
+	SubjectAlternativeNameEmail          string
+	SubjectAlternativeNameOtheName       string
+	SubjectCommonName                    string
 	TLSCipher                            string
 	TLSVersion                           string
 	Team                                 string
+	TemplateName                         string
 	TextEncodedORAddress                 string
-	TunnelClientEndpoint                 string
 	TunnelMediumType                     string
 	TunnelPrivateGroupID                 string
 	TunnelType                           string
-	Type                                 string
+	UserAccountControl                   string
 	UserName                             string
 }

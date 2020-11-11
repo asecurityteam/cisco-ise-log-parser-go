@@ -1,4 +1,4 @@
-package parser
+package ciscoiselogparser
 
 import (
 	"encoding/json"

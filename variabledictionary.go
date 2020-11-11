@@ -1,4 +1,4 @@
-package parser
+package ciscoiselogparser
 
 var variableDictionary map[string]string = map[string]string{
 	"ac-user-agent":           "ACUserAgent",
