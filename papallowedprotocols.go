@@ -2,6 +2,7 @@ package ciscoiselogparser
 
 import "time"
 
+// PAPAllowedProtocolsLog is a struct for PAPAllowedProtocols CISCO ISE logs.
 type PAPAllowedProtocolsLog struct {
 	AccessService            string     `json:"access_service,omitempty"`
 	AccountingAuthentication string     `json:"accounting_authentication,omitempty"`
@@ -34,108 +35,4 @@ type PAPAllowedProtocolsLog struct {
 	Src                      string     `json:"src,omitempty"`
 	Time                     time.Time  `json:"time,omitempty"`
 	User                     string     `json:"user,omitempty"`
-}
-
-type PAPAllowedProtocolsLogMessage struct {
-	ADErrorDetails                       string
-	ADUserCandidateIdentities            string
-	ADUserDNSDomain                      string
-	ADUserJoinPoint                      string
-	ADUserNetBiosName                    string
-	ADUserQualifiedName                  string
-	ADUserResolvedDNs                    string
-	ADUserResolvedIdentities             string
-	ADUserSamAccountName                 string
-	AcctAuthentic                        string
-	AcctDelayTime                        string
-	AcctInputOctets                      string
-	AcctInputPackets                     string
-	AcctOutputOctets                     string
-	AcctOutputPackets                    string
-	AcctSessionId                        string
-	AcctSessionTime                      string
-	AcctStatusType                       string
-	AcctTerminateCause                   string
-	AcsSessionID                         string
-	AirespaceWlanId                      string
-	AllowEasyWiredSession                string
-	AuthenticationIdentityStore          string
-	AuthenticationMethod                 string
-	AuthenticationStatus                 string
-	AuthorizationPolicyMatchedRule       string
-	CPMSessionID                         string
-	CVPN3000ASAPIX7xClientType           string
-	CVPN3000ASAPIX7xSessionSubtype       string
-	CVPN3000ASAPIX7xSessionType          string
-	CVPN3000ASAPIX7xTunnelGroupName      string
-	CalledStationID                      string
-	CallingStationID                     string
-	ChargeableUserIdentity               string
-	CiscoAvPair                          []string
-	Class                                []string
-	ConfigVersionId                      string
-	DC                                   []string
-	DTLSSupport                          string
-	DestinationIPAddress                 string
-	DestinationPort                      string
-	DeviceIPAddress                      string
-	DeviceType                           string
-	EapAuthentication                    string
-	EapTunnel                            string
-	EndPointMACAddress                   string
-	EndPointMatchedProfile               string
-	FramedIPAddress                      string
-	FramedMTU                            string
-	FramedProtocol                       string
-	HostIdentityGroup                    string
-	IPSEC                                string
-	ISEPolicySetName                     string
-	IdentityAccessRestricted             string
-	IdentityGroup                        string
-	IdentityPolicyMatchedRule            string
-	IdentitySelectionMatchedRule         string
-	IsMachineAuthentication              string
-	IsThirdPartyDeviceFlow               string
-	L                                    string
-	Location                             string
-	LocationCapable                      string
-	ModelName                            string
-	NASIPAddress                         string
-	NASIdentifier                        string
-	NASPort                              string
-	NASPortId                            string
-	NASPortType                          string
-	Name                                 string
-	NetworkDeviceGroups                  map[string]map[string]string
-	NetworkDeviceName                    string
-	NetworkDeviceProfile                 string
-	NetworkDeviceProfileId               string
-	NetworkDeviceProfileName             string
-	OU                                   string
-	PostureAssessmentStatus              string
-	Protocol                             string
-	RadiusFlowType                       string
-	RequestLatency                       string
-	Role                                 string
-	SAMAccountName                       string
-	SSID                                 string
-	Security                             string
-	SelectedAccessService                string
-	SelectedAuthenticationIdentityStores string
-	SelectedAuthorizationProfiles        string
-	ServiceType                          string
-	SoftwareVersion                      string
-	State                                []string
-	Step                                 []int
-	StepData                             map[string]string
-	TLSCipher                            string
-	TLSVersion                           string
-	Team                                 string
-	TextEncodedORAddress                 string
-	TunnelClientEndpoint                 string
-	TunnelMediumType                     string
-	TunnelPrivateGroupID                 string
-	TunnelType                           string
-	Type                                 string
-	UserName                             string
 }

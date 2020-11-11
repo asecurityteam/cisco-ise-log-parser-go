@@ -2,6 +2,7 @@ package ciscoiselogparser
 
 import "time"
 
+// HostLookupAllowedProtocolsLog is a struct for HostLookupAllowedProtocols CISCO ISE logs.
 type HostLookupAllowedProtocolsLog struct {
 	AccessService            string     `json:"access_service,omitempty"`
 	AccountingAuthentication string     `json:"accounting_authentication,omitempty"`
@@ -62,85 +63,4 @@ type HostLookupAllowedProtocolsLog struct {
 	User                     string     `json:"user,omitempty"`
 	UserCategory             string     `json:"user_category,omitempty"`
 	WlanID                   string     `json:"wlan_id,omitempty"`
-}
-
-type HostLookupAllowedProtocolsLogMessage struct {
-	AcctAuthentic                        string
-	AcctDelayTime                        string
-	AcctInputGigawords                   string
-	AcctInputOctets                      string
-	AcctInputPackets                     string
-	AcctOutputGigaword                   string
-	AcctOutputOctets                     string
-	AcctOutputPackets                    string
-	AcctSessionId                        string
-	AcctSessionTime                      string
-	AcctStatusType                       string
-	AcctTerminateCause                   string
-	AcsSessionID                         string
-	AirespaceWlanId                      string
-	AllowEasyWiredSession                string
-	AuthenticationIdentityStore          string
-	AuthenticationMethod                 string
-	AuthenticationStatus                 string
-	AuthorizationPolicyMatchedRule       string
-	CPMSessionID                         string
-	CalledStationID                      string
-	CallingStationID                     string
-	Class                                []string
-	ConfigVersionId                      string
-	DTLSSupport                          string
-	DestinationIPAddress                 string
-	DestinationPort                      string
-	DeviceIPAddress                      string
-	DevicePort                           string
-	DeviceType                           string
-	DeviceRegistrationStatus             string
-	EndPointMACAddress                   string
-	EndPointMatchedProfile               string
-	EventTimestamp                       string
-	FailureReason                        string
-	FramedIPAddress                      string
-	FramedMTU                            string
-	HostIdentityGroup                    string
-	IPSEC                                string
-	ISEPolicySetName                     string
-	IdentityGroup                        string
-	IdentityPolicyMatchedRule            string
-	IdentitySelectionMatchedRule         string
-	IsThirdPartyDeviceFlow               string
-	Location                             string
-	NASIPAddress                         string
-	NASIdentifier                        string
-	NASPort                              string
-	NASPortType                          string
-	Name                                 string
-	NetworkDeviceProfile                 string
-	NetworkDeviceGroups                  map[string]map[string]string
-	NetworkDeviceName                    string
-	NetworkDeviceProfileId               string
-	NetworkDeviceProfileName             string
-	OriginalUserName                     string
-	PostureAssessmentStatus              string
-	Protocol                             string
-	Response                             string
-	RadiusFlowType                       string
-	RadiusPacketType                     string
-	RequestLatency                       string
-	Role                                 string
-	SSID                                 string
-	Security                             string
-	SelectedAccessService                string
-	SelectedAuthenticationIdentityStores string
-	SelectedAuthorizationProfiles        string
-	ServiceType                          string
-	Step                                 []int
-	StepData                             map[string]string
-	Team                                 string
-	TunnelMediumType                     string
-	TunnelPrivateGroupID                 string
-	TunnelType                           string
-	UseCase                              string
-	UserName                             string
-	UserType                             string
 }
