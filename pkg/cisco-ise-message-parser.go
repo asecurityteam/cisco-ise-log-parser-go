@@ -67,6 +67,7 @@ type LogMessage struct {
 	ADUserResolvedDNs                    *string               `json:",omitempty"`
 	ADUserResolvedIdentities             *string               `json:",omitempty"`
 	ADUserSamAccountName                 *string               `json:",omitempty"`
+	AKI                                  *string               `json:",omitempty"`
 	AcctAuthentic                        *string               `json:",omitempty"`
 	AcctDelayTime                        *string               `json:",omitempty"`
 	AcctInputGigawords                   *string               `json:",omitempty"`
@@ -100,6 +101,7 @@ type LogMessage struct {
 	ConfigVersionId                      *string               `json:",omitempty"`
 	DC                                   []string              `json:",omitempty"`
 	DTLSSupport                          *string               `json:",omitempty"`
+	DaysToExpiry                         *string               `json:",omitempty"`
 	Department                           *string               `json:",omitempty"`
 	DestinationIPAddress                 *string               `json:",omitempty"`
 	DestinationPort                      *string               `json:",omitempty"`
@@ -117,6 +119,8 @@ type LogMessage struct {
 	EventTimestamp                       *string               `json:",omitempty"`
 	EventDescription                     *string               `json:",omitempty"`
 	EventType                            *IseLogEvent          `json:",omitempty"`
+	ExtendedKeyUsageName                 []string              `json:",omitempty"`
+	ExtendedKeyUsageOID                  []string              `json:",omitempty"`
 	ExternalGroups                       *string               `json:",omitempty"`
 	FailureReason                        *string               `json:",omitempty"`
 	FramedIPAddress                      *string               `json:",omitempty"`
@@ -133,6 +137,10 @@ type LogMessage struct {
 	IsMachineAuthentication              *bool                 `json:",omitempty"`
 	IsMachineIdentity                    *bool                 `json:",omitempty"`
 	IsThirdPartyDeviceFlow               *bool                 `json:",omitempty"`
+	Issuer                               *string               `json:",omitempty"`
+	IssuerCommonName                     *string               `json:",omitempty"`
+	IssuerDomainComponent                []string              `json:",omitempty"`
+	KeyUsage                             []string              `json:",omitempty"`
 	Location                             *DropDown             `json:",omitempty"`
 	LocationL                            *string               `json:",omitempty"`
 	LocationCapable                      *string               `json:",omitempty"`
@@ -169,9 +177,15 @@ type LogMessage struct {
 	Step                                 []string              `json:",omitempty"`
 	StepData                             *string               `json:",omitempty"`
 	StepLatency                          *string               `json:",omitempty"`
+	Subject                              *string               `json:",omitempty"`
+	SubjectAlternativeName               *string               `json:",omitempty"`
+	SubjectAlternativeNameEmail          *string               `json:",omitempty"`
+	SubjectAlternativeNameOtheName       *string               `json:",omitempty"`
+	SubjectCommonName                    *string               `json:",omitempty"`
 	TLSCipher                            *string               `json:",omitempty"`
 	TLSVersion                           *string               `json:",omitempty"`
 	Team                                 *DropDown             `json:",omitempty"`
+	TemplateName                         *string               `json:",omitempty"`
 	TotalFailedAttempts                  *int                  `json:",omitempty"`
 	TotalFailedTime                      *int                  `json:",omitempty"`
 	TextEncodedORAddress                 *TextEncodedORAddress `json:",omitempty"`
