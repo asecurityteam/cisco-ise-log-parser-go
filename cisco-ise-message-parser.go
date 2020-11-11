@@ -13,6 +13,7 @@ import (
 // IseLogEvent is the type for the pseudo-enum describing various ISE log events.
 type IseLogEvent int
 
+// Event codes for Cisco ISE logs.
 const (
 	RADIUSAccountingStartRequest           IseLogEvent = 3000
 	RADIUSAccountingStopRequest            IseLogEvent = 3001
@@ -64,7 +65,7 @@ type LogMessage struct {
 	ADUserJoinPoint                      *string               `json:",omitempty"`
 	ADUserNetBiosName                    *string               `json:",omitempty"`
 	ADUserQualifiedName                  *string               `json:",omitempty"`
-	ADUserResolvedDNs                    *string               `json:",omitempty"`
+	ADUserResolvedDNS                    *string               `json:",omitempty"`
 	ADUserResolvedIdentities             *string               `json:",omitempty"`
 	ADUserSamAccountName                 *string               `json:",omitempty"`
 	AKI                                  *string               `json:",omitempty"`
@@ -76,13 +77,13 @@ type LogMessage struct {
 	AcctInputPackets                     *string               `json:",omitempty"`
 	AcctOutputOctets                     *string               `json:",omitempty"`
 	AcctOutputPackets                    *string               `json:",omitempty"`
-	AcctSessionId                        *string               `json:",omitempty"`
+	AcctSessionID                        *string               `json:",omitempty"`
 	AcctSessionTime                      *string               `json:",omitempty"`
 	AcctStatusType                       *string               `json:",omitempty"`
 	AcctTerminateCause                   *string               `json:",omitempty"`
 	AcsSessionID                         *string               `json:",omitempty"` // Ex. syd-isepsn01/386885261/12111391
 	AllowEasyWiredSession                *bool                 `json:",omitempty"`
-	AirespaceWlanId                      *string               `json:",omitempty"`
+	AirespaceWlanID                      *string               `json:",omitempty"`
 	AuthenticationIdentityStore          *string               `json:",omitempty"`
 	AuthenticationMethod                 *string               `json:",omitempty"`
 	AuthenticationStatus                 *string               `json:",omitempty"`
@@ -98,7 +99,7 @@ type LogMessage struct {
 	CiscoAVPair                          *CiscoAVPair          `json:",omitempty"`
 	Class                                []string              `json:",omitempty"`
 	Company                              *string               `json:",omitempty"`
-	ConfigVersionId                      *string               `json:",omitempty"`
+	ConfigVersionID                      *string               `json:",omitempty"`
 	DC                                   []string              `json:",omitempty"`
 	DTLSSupport                          *string               `json:",omitempty"`
 	DaysToExpiry                         *string               `json:",omitempty"`
@@ -148,13 +149,13 @@ type LogMessage struct {
 	NASIPAddress                         *string               `json:",omitempty"`
 	NASIdentifier                        *string               `json:",omitempty"`
 	NASPort                              *string               `json:",omitempty"`
-	NASPortId                            *string               `json:",omitempty"`
+	NASPortID                            *string               `json:",omitempty"`
 	NASPortType                          *string               `json:",omitempty"`
 	Name                                 *string               `json:",omitempty"`
 	NetworkDeviceProfile                 *string               `json:",omitempty"`
 	NetworkDeviceGroups                  DropDownMap           `json:",omitempty"`
 	NetworkDeviceName                    *string               `json:",omitempty"`
-	NetworkDeviceProfileId               *string               `json:",omitempty"`
+	NetworkDeviceProfileID               *string               `json:",omitempty"`
 	NetworkDeviceProfileName             *string               `json:",omitempty"`
 	OU                                   *string               `json:",omitempty"`
 	OriginalUserName                     *string               `json:",omitempty"`
@@ -214,7 +215,7 @@ type CiscoAVPair struct {
 	DiscCauseExt    *string `json:",omitempty"`
 }
 
-// CiscoAVPair contains subfields derived from the mdm-tlv field of an ISE log's message CSV content.
+// MDMTLV contains subfields derived from the mdm-tlv field of an ISE log's message CSV content.
 type MDMTLV struct {
 	DevicePlatform        *string `json:",omitempty"` // Ex. linux-64, win, mac-intel
 	DevicePlatformVersion *string `json:",omitempty"` // Ex. 10.15.7
@@ -428,7 +429,7 @@ func parseAppendStringToList(logMessage *LogMessage, key string, value string) e
 }
 
 func parseDropDownList(logMessage *LogMessage, key string, value string) error {
-	dropDown, _, err := createDropDown(value, key)
+	dropDown, _, err := createDropDown(value)
 	if err != nil {
 		return err
 	}
@@ -437,7 +438,7 @@ func parseDropDownList(logMessage *LogMessage, key string, value string) error {
 }
 
 func parseDropDownListMap(logMessage *LogMessage, key string, value string) error {
-	dropDown, mapKey, err := createDropDown(value, key)
+	dropDown, mapKey, err := createDropDown(value)
 	if err != nil {
 		return err
 	}
@@ -496,7 +497,7 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 
 // createDropDown converts a value of the format: "Location#Location#All Locations#Washington#Portland"
 // into a DropDown object: "All Locations -> Washington -> Portland".
-func createDropDown(dropDownText string, field string) (dropDown DropDown, key string, err error) {
+func createDropDown(dropDownText string) (dropDown DropDown, key string, err error) {
 	dropDownSlice := strings.Split(dropDownText, "#")
 	if len(dropDownSlice) < 2 {
 		return DropDown{}, "", &TypeMismatch{
@@ -532,7 +533,7 @@ func extractKeyValue(column string) (key string, value string) {
 }
 
 // removals is a list of characters we remove when attempted to autoformat a field name.
-var removals []string = []string{
+var removals = []string{
 	"-", " ", "/",
 }
 
@@ -594,23 +595,20 @@ func setField(object interface{}, field string, value interface{}) error {
 				if f.Kind() == val.Kind() {
 					f.Set(val)
 					return nil
-				} else {
-					return &AssignmentFailure{
-						Message: "assignment-wrong-field-type",
-						Reason:  fmt.Sprintf("%v cannot be set to %v", field, val),
-					}
 				}
-			} else {
 				return &AssignmentFailure{
-					Message: "assignment-cannot-bet-set",
-					Reason:  fmt.Sprintf("%v cannot be set", field),
+					Message: "assignment-wrong-field-type",
+					Reason:  fmt.Sprintf("%v cannot be set to %v", field, val),
 				}
 			}
-		} else {
 			return &AssignmentFailure{
-				Message: "assignment-invalid-value",
-				Reason:  fmt.Sprintf("%v is invalid", field),
+				Message: "assignment-cannot-bet-set",
+				Reason:  fmt.Sprintf("%v cannot be set", field),
 			}
+		}
+		return &AssignmentFailure{
+			Message: "assignment-invalid-value",
+			Reason:  fmt.Sprintf("%v is invalid", field),
 		}
 	}
 	return &AssignmentFailure{
@@ -633,23 +631,20 @@ func appendToSlice(object interface{}, field string, value interface{}) error {
 				if f.Kind() == val.Kind() {
 					f.Set(reflect.AppendSlice(f, val))
 					return nil
-				} else {
-					return &AssignmentFailure{
-						Message: "assignment-slice-wrong-field-type",
-						Reason:  fmt.Sprintf("%v cannot be set to %v", f, val),
-					}
 				}
-			} else {
 				return &AssignmentFailure{
-					Message: "assignment-slice-cannot-be-set",
-					Reason:  fmt.Sprintf("%v cannot be set", f),
+					Message: "assignment-slice-wrong-field-type",
+					Reason:  fmt.Sprintf("%v cannot be set to %v", f, val),
 				}
 			}
-		} else {
 			return &AssignmentFailure{
-				Message: "assignment-slice-invalid-value",
-				Reason:  fmt.Sprintf("%v is not a valid value", f),
+				Message: "assignment-slice-cannot-be-set",
+				Reason:  fmt.Sprintf("%v cannot be set", f),
 			}
+		}
+		return &AssignmentFailure{
+			Message: "assignment-slice-invalid-value",
+			Reason:  fmt.Sprintf("%v is not a valid value", f),
 		}
 	}
 	return &AssignmentFailure{
@@ -673,23 +668,20 @@ func addToMap(object interface{}, field string, key string, value interface{}) e
 				if f.Kind() == reflect.Map {
 					f.SetMapIndex(k, val)
 					return nil
-				} else {
-					return &AssignmentFailure{
-						Message: "assignment-map-wrong-field-type",
-						Reason:  fmt.Sprintf("%v cannot be set to %v", f, val),
-					}
 				}
-			} else {
 				return &AssignmentFailure{
-					Message: "assignment-map-cannot-be-set",
-					Reason:  fmt.Sprintf("%v cannot be set", f),
+					Message: "assignment-map-wrong-field-type",
+					Reason:  fmt.Sprintf("%v cannot be set to %v", f, val),
 				}
 			}
-		} else {
 			return &AssignmentFailure{
-				Message: "assignment-map-invalid-value",
-				Reason:  fmt.Sprintf("%v is not a valid value", f),
+				Message: "assignment-map-cannot-be-set",
+				Reason:  fmt.Sprintf("%v cannot be set", f),
 			}
+		}
+		return &AssignmentFailure{
+			Message: "assignment-map-invalid-value",
+			Reason:  fmt.Sprintf("%v is not a valid value", f),
 		}
 	}
 	return &AssignmentFailure{
