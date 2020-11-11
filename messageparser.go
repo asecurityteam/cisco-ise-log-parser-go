@@ -54,6 +54,23 @@ func (i *IseLogEvent) String() string {
 	return ""
 }
 
+// variableDictionary maps the field names in the CSV message to upper camel-case equivalents.
+var variableDictionary = map[string]string{
+	"ac-user-agent":           "ACUserAgent",
+	"allowEasyWiredSession":   "AllowEasyWiredSession",
+	"audit-session-id":        "AuditSessionID",
+	"cisco-av-pair":           "CiscoAVPair",
+	"device-mac":              "DeviceMAC",
+	"device-platform":         "DevicePlatform",
+	"device-public-mac":       "DevicePublicMAC",
+	"device-platform-version": "DevicePlatformVersion",
+	"device-type":             "DeviceType",
+	"device-uid":              "DeviceUID",
+	"l":                       "LocationL",
+	"employeeID":              "EmployeeID",
+	"mdm-tlv":                 "MDMTLV",
+}
+
 // Structs
 
 // LogMessage is a structure populated with the CSV field information from the message field of an ISE log.
