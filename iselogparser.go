@@ -12,16 +12,16 @@ const (
 )
 
 
-type iseLogAccessService struct {
+type IseLogAccessService struct {
 	AccessService string `json:"access_service,omitempty"`
 	EventLog
 }
 
 type EventLog interface{}
 
-// UnmarshalJSON for *iseLogAccessService
-func (iseLog *iseLogAccessService) UnmarshalJSON(data []byte) error {
-	type Alias iseLogAccessService
+// UnmarshalJSON for *IseLogAccessService
+func (iseLog *IseLogAccessService) UnmarshalJSON(data []byte) error {
+	type Alias IseLogAccessService
 	aux := &struct {
 		*Alias
 	}{
