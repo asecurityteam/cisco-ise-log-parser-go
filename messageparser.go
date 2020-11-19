@@ -310,6 +310,27 @@ type MessageDetails struct {
 	UnexpectedFields map[string]string
 }
 
+// UnmarshalJSON for *LogMessage
+func (logMessage *LogMessage) UnmarshalJSON(data []byte) error {
+	type Alias LogMessage
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(logMessage),
+	}
+
+	err := json.Unmarshal(data, &aux)
+	if err == nil {
+		return nil
+	}
+	// if json.Unmarshal results in an error, then it's in CSV format, so use the CSV parser
+	err = ParseMessageCSV(string(data), logMessage)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // valueParseFn defines the standard parse function for a given field.
 type valueParseFn func(logMessage *LogMessage, key string, value string) error
 
@@ -349,27 +370,27 @@ func (pmap *parseFnMap) retrieveParseFn(object interface{}, key string) valuePar
 }
 
 // ParseMessageCSV consumes the CSV formatted text used in the message field of a CISCO ISE Log and returns a Go struct with the given information.
-func ParseMessageCSV(log string) (iselogmessage LogMessage, err error) {
+func ParseMessageCSV(log string, iselogmessage *LogMessage) (err error) {
 
 	iselogmessage.MessageDetails.UnexpectedFields = map[string]string{}
 	iselogmessage.NetworkDeviceGroups = DropDownMap{}
 
 	_, columns, err := structureLog(log)
 	if err != nil {
-		return LogMessage{}, &ParseError{
+		return &ParseError{
 			OrigErr: err,
 			Message: "parse-structure-error",
 			Reason:  "log message has unexpected structure",
 		}
 	}
 	for _, column := range columns {
-		err = parseField(&iselogmessage, column, keyValueParseFuncMap)
+		err = parseField(iselogmessage, column, keyValueParseFuncMap)
 		if err != nil {
-			return LogMessage{}, err
+			return err
 		}
 	}
 
-	return iselogmessage, nil
+	return nil
 }
 
 func parseField(logMessage *LogMessage, column string, parseMap parseFnMap) error {
@@ -473,6 +494,7 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 
 	ciscoAVPairSlice := strings.Split(value, "=")
 	if len(ciscoAVPairSlice) < 2 {
+		logMessage.CiscoAVPair = nil
 		return &TypeMismatch{
 			Original: ciscoAVPairSlice,
 			Type:     "CiscoAVPair",
@@ -483,6 +505,7 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 	switch formattedKey {
 	case "MDMTLV":
 		if len(ciscoAVPairSlice) < 3 {
+			logMessage.CiscoAVPair = nil
 			return &TypeMismatch{
 				Original: ciscoAVPairSlice,
 				Type:     "MDMTLV",
@@ -574,7 +597,7 @@ func addUnexpectedKeyValue(logMessage *LogMessage, field string, value string) {
 
 // structureLog converts a csv-formatted string into slice of fields that we can then parse into a struct.
 func structureLog(rawLog string) (title string, fields []string, err error) {
-	sectionSplit := strings.SplitN(rawLog, ": ", 2)
+	sectionSplit := strings.SplitN(rawLog, ": ", 2) // ex. separate  "3002 NOTICE Radius-Accounting" from the rest of the string
 	if len(sectionSplit) != 2 {
 		return "", []string{}, &UnprocessableMessageFailure{
 			Message:    "invalid-message-format",
@@ -582,10 +605,10 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 			LogMessage: rawLog,
 		}
 	}
-	title = sectionSplit[0]
+	title = sectionSplit[0] // ex. "3002 NOTICE Radius-Accounting"
 
 	body := sectionSplit[1]
-	body = strings.ReplaceAll(body, `\,`, "{COMMA}")
+	body = strings.ReplaceAll(body, `\,`, "{COMMA}") // replace escaped commas with "{COMMA}" so that we can split by "," later.
 	body = strings.ReplaceAll(body, `\;`, "{SEMICOLON}")
 
 	// Converts the message CSV title into parsible fields in the message body.
