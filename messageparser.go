@@ -38,8 +38,10 @@ var eventTypeMap = map[string]IseLogEvent{
 
 // StrToIseLogEvent converts the text label of an ISE log's CVS message to an enum.
 func StrToIseLogEvent(event string) IseLogEvent {
-	if eventCode, ok := eventTypeMap[event]; ok {
-		return eventCode
+	for description, code := range eventTypeMap {
+		if strings.Contains(event, description) {
+			return code
+		}
 	}
 	return 0
 }
