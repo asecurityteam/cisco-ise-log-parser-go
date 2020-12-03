@@ -25,56 +25,57 @@ func TestParseMessageCSV(t *testing.T) {
 		{
 			name:            "Malformed Message Log",
 			log:             `RADIUS Accounting watchdog update`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - int",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, RequestLatency=NotANumber`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - bool",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, IsMachineAuthentication=NotABool`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - DropDown",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, Team=NotADropDown`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - CiscoAVPair",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, cisco-av-pair=NotACiscoAVPair`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"CiscoAVPair":{},"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - MDMTLV",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, cisco-av-pair=mdm-tlv=NotAnMDMTLV`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"CiscoAVPair":{},"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - TextEncodedORAddress",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, textEncodedORAddress=NotATextEncodedORAddress`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - DropDownMap",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, NetworkDeviceGroups=NotADropDownMap`,
-			expectedMarshal: []byte(`{"MessageDetails":{"UnexpectedFields":null}}`),
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 	}
 
 	for _, tt := range tc {
 		t.Run(tt.name, func(t *testing.T) {
-			output, err := ParseMessageCSV(tt.log)
+			var output LogMessage
+			err := ParseMessageCSV(tt.log, &output)
 			bytes, _ := json.Marshal(output)
 
 			assert.IsType(t, tt.expectedError, err, fmt.Sprintf("Error: %v", err))
