@@ -49,13 +49,13 @@ func TestParseMessageCSV(t *testing.T) {
 		{
 			name:            "Wrong type for field - CiscoAVPair",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, cisco-av-pair=NotACiscoAVPair`,
-			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedMarshal: []byte(`{"CiscoAVPair":{},"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{
 			name:            "Wrong type for field - MDMTLV",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, cisco-av-pair=mdm-tlv=NotAnMDMTLV`,
-			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedMarshal: []byte(`{"CiscoAVPair":{},"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   &ParseError{},
 		},
 		{

@@ -494,7 +494,6 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 
 	ciscoAVPairSlice := strings.Split(value, "=")
 	if len(ciscoAVPairSlice) < 2 {
-		logMessage.CiscoAVPair = nil
 		return &TypeMismatch{
 			Original: ciscoAVPairSlice,
 			Type:     "CiscoAVPair",
@@ -505,7 +504,6 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 	switch formattedKey {
 	case "MDMTLV":
 		if len(ciscoAVPairSlice) < 3 {
-			logMessage.CiscoAVPair = nil
 			return &TypeMismatch{
 				Original: ciscoAVPairSlice,
 				Type:     "MDMTLV",
