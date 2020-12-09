@@ -71,6 +71,7 @@ var variableDictionary = map[string]string{
 	"l":                       "LocationL",
 	"employeeID":              "EmployeeID",
 	"mdm-tlv":                 "MDMTLV",
+	"business_unit":           "BusinessUnit",
 }
 
 // Structs
