@@ -71,6 +71,7 @@ var variableDictionary = map[string]string{
 	"l":                       "LocationL",
 	"employeeID":              "EmployeeID",
 	"mdm-tlv":                 "MDMTLV",
+	"business_unit":           "BusinessUnit",
 }
 
 // Structs
@@ -107,6 +108,7 @@ type LogMessage struct {
 	AuthenticationMethod                 *string               `json:",omitempty"`
 	AuthenticationStatus                 *string               `json:",omitempty"`
 	AuthorizationPolicyMatchedRule       *string               `json:",omitempty"`
+	BusinessUnit                         *string               `json:",omitempty"`
 	CPMSessionID                         *string               `json:",omitempty"`
 	CVPN3000ASAPIX7xClientType           *string               `json:",omitempty"`
 	CVPN3000ASAPIX7xSessionSubtype       *string               `json:",omitempty"`
