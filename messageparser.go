@@ -72,6 +72,11 @@ var variableDictionary = map[string]string{
 	"employeeID":              "EmployeeID",
 	"mdm-tlv":                 "MDMTLV",
 	"business_unit":           "BusinessUnit",
+	"NAS-Port-Id":             "NASPortID",
+	"Acct-Session-Id":         "AcctSessionID",
+	"service-type":            "ServiceType",
+	"NetworkDeviceProfileID":  "NetworkDeviceProfileID",
+	"ConfigVersionId":         "ConfigVersionID",
 }
 
 // Structs
@@ -121,6 +126,7 @@ type LogMessage struct {
 	Class                                []string              `json:",omitempty"`
 	Company                              *string               `json:",omitempty"`
 	ConfigVersionID                      *string               `json:",omitempty"`
+	CurrentIDStoreName                   *string               `json:",omitempty"`
 	DC                                   []string              `json:",omitempty"`
 	DTLSSupport                          *string               `json:",omitempty"`
 	DaysToExpiry                         *string               `json:",omitempty"`
@@ -135,6 +141,8 @@ type LogMessage struct {
 	DistinguishedName                    *string               `json:",omitempty"`
 	EapAuthentication                    *string               `json:",omitempty"`
 	EapTunnel                            *string               `json:",omitempty"`
+	EAPKeyName                           *string               `json:",omitempty"`
+	EapChainingResult                    *string               `json:",omitempty"`
 	EmployeeID                           *string               `json:",omitempty"`
 	EndPointMACAddress                   *string               `json:",omitempty"`
 	EndPointMatchedProfile               *string               `json:",omitempty"`
@@ -143,7 +151,7 @@ type LogMessage struct {
 	EventType                            *IseLogEvent          `json:",omitempty"`
 	ExtendedKeyUsageName                 []string              `json:",omitempty"`
 	ExtendedKeyUsageOID                  []string              `json:",omitempty"`
-	ExternalGroups                       *string               `json:",omitempty"`
+	ExternalGroups                       []string              `json:",omitempty"`
 	FailureReason                        *string               `json:",omitempty"`
 	FramedIPAddress                      *string               `json:",omitempty"`
 	FramedMTU                            *string               `json:",omitempty"`
@@ -234,6 +242,8 @@ type CiscoAVPair struct {
 	MDNS            *string `json:",omitempty"`
 	ConnectProgress *string `json:",omitempty"`
 	DiscCauseExt    *string `json:",omitempty"`
+	Method          *string `json:",omitempty"`
+	ServiceType     *string `json:",omitempty"`
 }
 
 // MDMTLV contains subfields derived from the mdm-tlv field of an ISE log's message CSV content.
