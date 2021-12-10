@@ -65,6 +65,18 @@ func TestParseMessageCSV(t *testing.T) {
 			expectedError:   &ParseError{},
 		},
 		{
+			name:            "Multiple devices in TextEncodedORAddress",
+			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, textEncodedORAddress=\{"devices": [\{"deviceid": "1234", "mac": ["11-22-33-44-55-66", "aa-bb-cc-dd-ee-ff"]\} \{"deviceid": "abcd", "mac": ["77-88-99-aa-bb-cc", "a1-b2-c3-d4-e5-f6"]\}]\}`,
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"TextEncodedORAddress":{"devices":[{"deviceid":"1234","mac":["11-22-33-44-55-66","aa-bb-cc-dd-ee-ff"]},{"deviceid":"abcd","mac":["77-88-99-aa-bb-cc","a1-b2-c3-d4-e5-f6"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
+			name:            "Multiple devices in TextEncodedORAddress, but even more broken JSON",
+			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, textEncodedORAddress=\{"devices": [\{"deviceid": "abcd", "mac": ["11-22-33-44-55-66", "aa-bb-cc-dd-ee-ff"]\} \{"deviceid": "efgh", "mac": ["11-22-33-44-55-66", "aa-bb-cc-dd-ee-ff"]\}"deviceid": "ijkl", "mac": ["11-22-33-44-55-66", "aa-bb-cc-dd-ee-ff"]\}"deviceid": "mnop", "mac": ["11-22-33-44-55-66"]\}"deviceid": "qrst", "mac": ["11-22-33-44-55-66", "aa-bb-cc-dd-ee-ff"]\}]\}`,
+			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55-66","aa-bb-cc-dd-ee-ff"]},{"deviceid":"efgh","mac":["11-22-33-44-55-66","aa-bb-cc-dd-ee-ff"]},{"deviceid":"ijkl","mac":["11-22-33-44-55-66","aa-bb-cc-dd-ee-ff"]},{"deviceid":"mnop","mac":["11-22-33-44-55-66"]},{"deviceid":"qrst","mac":["11-22-33-44-55-66","aa-bb-cc-dd-ee-ff"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
 			name:            "Wrong type for field - DropDownMap",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, NetworkDeviceGroups=NotADropDownMap`,
 			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),

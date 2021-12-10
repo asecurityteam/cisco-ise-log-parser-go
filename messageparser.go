@@ -533,6 +533,8 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 // parseTextEncodedORAddress is a custom function to parse the textEncodedORAddress field into the TextEncodedORAddress field of the LogMessage struct.
 func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string) error {
 	cleanedJSON := strings.ReplaceAll(value, `\`, "")
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, " ", "")
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`) // insert comma if JSON array is missing it
 
 	var textEncodedORAddress TextEncodedORAddress
 	err := json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
@@ -618,6 +620,8 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 	title = sectionSplit[0] // ex. "3002 NOTICE Radius-Accounting"
 
 	body := sectionSplit[1]
+	body = strings.ReplaceAll(body, `}"`, `},{"`) // fix missing JSON brackets. Note this could be risky and might need to be removed if parsing starts failing
+	body = replaceUnescapedJSONCommas(body)
 	body = strings.ReplaceAll(body, `\,`, "{COMMA}") // replace escaped commas with "{COMMA}" so that we can split by "," later.
 	body = strings.ReplaceAll(body, `\;`, "{SEMICOLON}")
 
@@ -629,6 +633,35 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 		fields[i] = strings.ReplaceAll(strings.ReplaceAll(fields[i], "{COMMA}", ","), "{SEMICOLON}", ";")
 	}
 	return title, fields, nil
+}
+
+// Some of the fields in the logs contain JSON data that hasn't been properly escaped for CSV.
+// This function replaces commas within JSON payloads with `{COMMA}` so that the CSV can be correctly split
+func replaceUnescapedJSONCommas(body string) (newbody string) {
+
+	bracketCount := 0
+	lastWriteIndex := 0
+
+	for i, c := range body {
+
+		char := string(c)
+
+		if char == `{` {
+			bracketCount++
+		} else if char == `}` {
+			bracketCount--
+		}
+
+		if bracketCount > 0 && i > 0 {
+			if char == `,` && string(body[i-1]) != `\` {
+				newbody = newbody + body[lastWriteIndex:i] + `{COMMA}` // append to a new string bc we're iterating over the old one
+				lastWriteIndex = i + 1                                 // plus 1 to skip the comma
+			}
+		}
+
+	}
+
+	return newbody + body[lastWriteIndex:]
 }
 
 // Reflection Utilities
