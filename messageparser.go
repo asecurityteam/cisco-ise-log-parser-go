@@ -80,6 +80,7 @@ var variableDictionary = map[string]string{
 	"NetworkDeviceProfileID":  "NetworkDeviceProfileID",
 	"ConfigVersionId":         "ConfigVersionID",
 	"host-name":               "Hostname",
+	"Framed-IP-Address":       "FramedIPAddress",
 }
 
 // Structs
@@ -576,19 +577,15 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 	for _, column := range endpointPropertySlice {
 		key, value := extractKeyValue(column)
-		if key == "host-name" {
+		formattedKey := formatKey(key)
+		switch formattedKey {
+		case "Hostname":
 			logMessage.EndpointProperty.Hostname = &value
-		}
-		if key == "Framed-IP-Address" {
+		case "FramedIPAddress":
 			logMessage.EndpointProperty.FramedIPAddress = &value
 		}
-		// err := parseFunc(logMessage, formatKey(key), value)
-		// if err != nil {
-		// 	return err
-		// }
-	}
-	// logMessage.EndpointProperty = &endpointProperty
 
+	}
 	return nil
 }
 
