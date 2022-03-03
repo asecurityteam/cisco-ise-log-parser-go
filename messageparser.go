@@ -23,6 +23,7 @@ const (
 	SupplicantStoppedResponding            IseLogEvent = 5411
 	EndpointConductedFailedAuthentications IseLogEvent = 5434
 	EndpointRestartedEAPSession            IseLogEvent = 5440
+	InfoProfilerEndpoint                   IseLogEvent = 80002
 )
 
 var eventTypeMap = map[string]IseLogEvent{
@@ -34,6 +35,7 @@ var eventTypeMap = map[string]IseLogEvent{
 	"5411 NOTICE Failed-Attempt":        SupplicantStoppedResponding,
 	"5434 NOTICE RADIUS":                EndpointConductedFailedAuthentications,
 	"5440 NOTICE RADIUS":                EndpointRestartedEAPSession,
+	"80002 INFO  Profiler":              InfoProfilerEndpoint,
 }
 
 // StrToIseLogEvent converts the text label of an ISE log's CVS message to an enum.
@@ -77,6 +79,7 @@ var variableDictionary = map[string]string{
 	"service-type":            "ServiceType",
 	"NetworkDeviceProfileID":  "NetworkDeviceProfileID",
 	"ConfigVersionId":         "ConfigVersionID",
+	"host-name":               "Hostname",
 }
 
 // Structs
@@ -157,6 +160,7 @@ type LogMessage struct {
 	FramedMTU                            *string               `json:",omitempty"`
 	FramedProtocol                       *string               `json:",omitempty"`
 	HostIdentityGroup                    *string               `json:",omitempty"`
+	EndpointProperty                     *EndpointProperty     `json:",omitempty"`
 	IPSEC                                *DropDown             `json:",omitempty"`
 	ISEPolicySetName                     *string               `json:",omitempty"`
 	IdentityAccessRestricted             *string               `json:",omitempty"`
@@ -258,6 +262,12 @@ type MDMTLV struct {
 	ACUserAgent           *string `json:",omitempty"`
 }
 
+// EndpointProperty constains subfields derived from the EndpointProperty field of an ISE log's messaage CVS content.
+type EndpointProperty struct {
+	Hostname        *string `json:",omitempty"`
+	FramedIPAddress *string `json:",omitempty"`
+}
+
 // TextEncodedORAddress contains subfields derived from the textEncodedORAddress field of an ISE log's message CSV content.
 type TextEncodedORAddress struct {
 	Devices []Device `json:"devices,omitempty"`
@@ -353,6 +363,7 @@ var keyValueParseFuncMap = parseFnMap{
 	"#015":                 parseDisregard,
 	"cisco-av-pair":        parseCiscoAVPair,
 	"textEncodedORAddress": parseTextEncodedORAddress,
+	"EndpointProperty":     parseEndpointProperty,
 }
 
 // retrieveParseFn checks the parseMap for any custom functions for a given key, and if one cannot be found, attempts to return a generic parse function.
@@ -395,7 +406,8 @@ func ParseMessageCSV(log string, iselogmessage *LogMessage) (err error) {
 			Reason:  "log message has unexpected structure",
 		}
 	}
-	for _, column := range columns {
+	for key, column := range columns {
+		fmt.Println(key)
 		err = parseField(iselogmessage, column, keyValueParseFuncMap)
 		if err != nil {
 			return err
@@ -546,6 +558,37 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 		}
 	}
 	logMessage.TextEncodedORAddress = &textEncodedORAddress
+	return nil
+}
+
+// parseEndpointProperty is a custom function to parse the EndpointProperty field into the EndpointProperty field of the LogMessage struct
+func parseEndpointProperty(logMessage *LogMessage, key string, value string) error {
+	if logMessage.EndpointProperty == nil {
+		logMessage.EndpointProperty = &EndpointProperty{}
+	}
+	cleanedJSON := strings.ReplaceAll(value, `\,`, ",")
+	endpointPropertySlice := strings.Split(cleanedJSON, ",")
+	if len(endpointPropertySlice) < 2 {
+		return &TypeMismatch{
+			Original: endpointPropertySlice,
+			Type:     "EndpointProperty",
+		}
+	}
+	for _, column := range endpointPropertySlice {
+		key, value := extractKeyValue(column)
+		if key == "host-name" {
+			logMessage.EndpointProperty.Hostname = &value
+		}
+		if key == "Framed-IP-Address" {
+			logMessage.EndpointProperty.FramedIPAddress = &value
+		}
+		// err := parseFunc(logMessage, formatKey(key), value)
+		// if err != nil {
+		// 	return err
+		// }
+	}
+	// logMessage.EndpointProperty = &endpointProperty
+
 	return nil
 }
 
