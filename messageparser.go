@@ -567,9 +567,8 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	if logMessage.EndpointProperty == nil {
 		logMessage.EndpointProperty = &EndpointProperty{}
 	}
-	cleanedJSON := strings.ReplaceAll(value, `\,`, ",")
-	endpointPropertySlice := strings.Split(cleanedJSON, ",")
-	if len(endpointPropertySlice) < 2 {
+	endpointPropertySlice := strings.Split(value, `\,`)
+	if len(endpointPropertySlice) == 0 {
 		return &TypeMismatch{
 			Original: endpointPropertySlice,
 			Type:     "EndpointProperty",
