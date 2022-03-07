@@ -629,7 +629,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 
 	var keyValueEndpointPropertyFuncMap = parseFnMap{
-		"textEncodedORAddress": parseDisregard,
+		"textEncodedORAddress": parseDisregard, // Contents differe and cannot use its parse func. Information is not valuable so ignore
 		"#015":                 parseDisregard,
 		"cisco-av-pair":        parseCiscoAVPair,
 		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType. Since it's only populated for individually owned assets (data we can find in TAG project), we can ignore
