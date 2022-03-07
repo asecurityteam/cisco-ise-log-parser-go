@@ -79,9 +79,6 @@ var variableDictionary = map[string]string{
 	"service-type":            "ServiceType",
 	"NetworkDeviceProfileID":  "NetworkDeviceProfileID",
 	"ConfigVersionId":         "ConfigVersionID",
-	"host-name":               "Hostname",
-	"Framed-IP-Address":       "FramedIPAddress",
-	"AD-Fetch-Host-Name":      "ADFetchHostname",
 	"profile-name":            "ProfileName",
 }
 
