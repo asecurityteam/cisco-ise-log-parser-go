@@ -82,6 +82,7 @@ var variableDictionary = map[string]string{
 	"host-name":               "Hostname",
 	"Framed-IP-Address":       "FramedIPAddress",
 	"AD-Fetch-Host-Name":      "ADFetchHostname",
+	"profile-name":            "ProfileName",
 }
 
 // Structs
@@ -178,6 +179,7 @@ type LogMessage struct {
 	IssuerCommonName                     *string               `json:",omitempty"`
 	IssuerDomainComponent                []string              `json:",omitempty"`
 	KeyUsage                             []string              `json:",omitempty"`
+	LicenseTypes                         *string               `json:",omitempty"`
 	Location                             *DropDown             `json:",omitempty"`
 	LocationL                            *string               `json:",omitempty"`
 	LocationCapable                      *string               `json:",omitempty"`
@@ -197,10 +199,11 @@ type LogMessage struct {
 	OriginalUserName                     *string               `json:",omitempty"`
 	PostureAssessmentStatus              *string               `json:",omitempty"`
 	Protocol                             *string               `json:",omitempty"`
+	QueryResult                          *string               `json:",omitempty"`
 	RadiusFlowType                       *string               `json:",omitempty"`
 	RadiusPacketType                     *string               `json:",omitempty"`
 	RequestLatency                       *int                  `json:",omitempty"`
-	Response                             *string               `json:",omitempty"`
+	Response                             *LogMessage           `json:",omitempty"`
 	Role                                 *DropDown             `json:",omitempty"`
 	SSID                                 *string               `json:",omitempty"`
 	SAMAccountName                       *string               `json:",omitempty"`
@@ -208,6 +211,7 @@ type LogMessage struct {
 	SelectedAccessService                *string               `json:",omitempty"`
 	SelectedAuthenticationIdentityStores *string               `json:",omitempty"`
 	SelectedAuthorizationProfiles        *string               `json:",omitempty"`
+	SessionTimeout                       *string               `json:",omitempty"`
 	ServiceType                          *string               `json:",omitempty"`
 	SoftwareVersion                      *string               `json:",omitempty"`
 	State                                []string              `json:",omitempty"`
@@ -223,6 +227,7 @@ type LogMessage struct {
 	TLSVersion                           *string               `json:",omitempty"`
 	Team                                 *DropDown             `json:",omitempty"`
 	TemplateName                         *string               `json:",omitempty"`
+	TerminationAction                    *string               `json:",omitempty"`
 	TotalFailedAttempts                  *int                  `json:",omitempty"`
 	TotalFailedTime                      *int                  `json:",omitempty"`
 	TextEncodedORAddress                 *TextEncodedORAddress `json:",omitempty"`
@@ -361,6 +366,7 @@ var keyValueParseFuncMap = parseFnMap{
 	"cisco-av-pair":        parseCiscoAVPair,
 	"textEncodedORAddress": parseTextEncodedORAddress,
 	"EndpointProperty":     parseEndpointProperty,
+	"Response":             parseResponse,
 }
 
 // retrieveParseFn checks the parseMap for any custom functions for a given key, and if one cannot be found, attempts to return a generic parse function.
@@ -554,6 +560,64 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 		}
 	}
 	logMessage.TextEncodedORAddress = &textEncodedORAddress
+	return nil
+}
+
+// parseResponse is a custom function to parse the Response field into the Response field of the LogMessage struct.
+func parseResponse(logMessage *LogMessage, key string, value string) error {
+
+	response := &LogMessage{
+		MessageDetails: MessageDetails{
+			UnexpectedFields: map[string]string{},
+		},
+	}
+
+	if value == "" {
+		// Nothing to parse
+		return nil
+	}
+
+	value = strings.ReplaceAll(value, " ", "")
+	responseParts := strings.FieldsFunc(value, func(r rune) bool {
+		return r == '{' || r == '}'
+	})
+
+	if len(responseParts) == 0 {
+		// Nothing to parse
+		return nil
+	}
+
+	// Each column becomes one key-value pair
+	columns := strings.Split(responseParts[0], ";")
+
+	// Parse function map used for the Response type
+	parseMap := parseFnMap{
+		"cisco-av-pair": parseCiscoAVPair,
+	}
+
+	for _, column := range columns {
+		key, value := extractKeyValue(column)
+
+		if key == "" && value == "" {
+			continue
+		}
+
+		parseFunc := parseMap.retrieveParseFn(response, key)
+		err := parseFunc(response, formatKey(key), value)
+		if err != nil {
+			if assignmentFailure, ok := err.(*AssignmentFailure); ok && strings.Contains(assignmentFailure.Message, "invalid-value") {
+				addUnexpectedKeyValue(response, key, value)
+				continue
+			}
+			return &ParseError{
+				OrigErr: err,
+				Message: "parse-field-error",
+				Reason:  fmt.Sprintf("could not parse key - value: %s - %v", key, value),
+			}
+		}
+	}
+
+	logMessage.Response = response
 	return nil
 }
 
