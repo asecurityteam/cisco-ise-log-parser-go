@@ -636,6 +636,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 		"#015":                 parseDisregard,
 		"cisco-av-pair":        parseCiscoAVPair,
 		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType. Since it's only populated for individually owned assets (data we can find in TAG project), we can ignore
+		"Response":             parseResponse,
 	}
 
 	for _, column := range endpointPropertySlice {
