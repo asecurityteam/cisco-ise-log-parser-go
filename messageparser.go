@@ -81,6 +81,7 @@ var variableDictionary = map[string]string{
 	"ConfigVersionId":         "ConfigVersionID",
 	"host-name":               "Hostname",
 	"Framed-IP-Address":       "FramedIPAddress",
+	"AD-Fetch-Host-Name":      "ADFetchHostname",
 }
 
 // Structs
@@ -150,6 +151,7 @@ type LogMessage struct {
 	EmployeeID                           *string               `json:",omitempty"`
 	EndPointMACAddress                   *string               `json:",omitempty"`
 	EndPointMatchedProfile               *string               `json:",omitempty"`
+	EndpointOUI                          *string               `json:",omitempty"` // Ex. Apple, INC
 	EventTimestamp                       *string               `json:",omitempty"`
 	EventDescription                     *string               `json:",omitempty"`
 	EventType                            *IseLogEvent          `json:",omitempty"`
@@ -161,7 +163,7 @@ type LogMessage struct {
 	FramedMTU                            *string               `json:",omitempty"`
 	FramedProtocol                       *string               `json:",omitempty"`
 	HostIdentityGroup                    *string               `json:",omitempty"`
-	EndpointProperty                     *EndpointProperty     `json:",omitempty"`
+	Hostname                             *string               `json:",omitempty"`
 	IPSEC                                *DropDown             `json:",omitempty"`
 	ISEPolicySetName                     *string               `json:",omitempty"`
 	IdentityAccessRestricted             *string               `json:",omitempty"`
@@ -261,12 +263,6 @@ type MDMTLV struct {
 	DeviceUID             *string `json:",omitempty"`
 	DeviceUIDGlobal       *string `json:",omitempty"`
 	ACUserAgent           *string `json:",omitempty"`
-}
-
-// EndpointProperty constains subfields derived from the EndpointProperty field of an ISE log's messaage CVS content.
-type EndpointProperty struct {
-	Hostname        *string `json:",omitempty"`
-	FramedIPAddress *string `json:",omitempty"`
 }
 
 // TextEncodedORAddress contains subfields derived from the textEncodedORAddress field of an ISE log's message CSV content.
@@ -407,8 +403,7 @@ func ParseMessageCSV(log string, iselogmessage *LogMessage) (err error) {
 			Reason:  "log message has unexpected structure",
 		}
 	}
-	for key, column := range columns {
-		fmt.Println(key)
+	for _, column := range columns {
 		err = parseField(iselogmessage, column, keyValueParseFuncMap)
 		if err != nil {
 			return err
@@ -564,9 +559,6 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 
 // parseEndpointProperty is a custom function to parse the EndpointProperty field into the EndpointProperty field of the LogMessage struct
 func parseEndpointProperty(logMessage *LogMessage, key string, value string) error {
-	if logMessage.EndpointProperty == nil {
-		logMessage.EndpointProperty = &EndpointProperty{}
-	}
 	endpointPropertySlice := strings.Split(value, `\,`)
 	if len(endpointPropertySlice) == 0 {
 		return &TypeMismatch{
@@ -574,14 +566,19 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 			Type:     "EndpointProperty",
 		}
 	}
+
+	var keyValueEndpointPropertyFuncMap = parseFnMap{
+		"textEncodedORAddress": parseDisregard,
+		"#015":                 parseDisregard,
+		"cisco-av-pair":        parseCiscoAVPair,
+		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType. Since it's only populated for individually owned assets (data we can find in TAG project), we can ignore
+	}
+
 	for _, column := range endpointPropertySlice {
-		key, value := extractKeyValue(column)
-		formattedKey := formatKey(key)
-		switch formattedKey {
-		case "Hostname":
-			logMessage.EndpointProperty.Hostname = &value
-		case "FramedIPAddress":
-			logMessage.EndpointProperty.FramedIPAddress = &value
+
+		err := parseField(logMessage, column, keyValueEndpointPropertyFuncMap)
+		if err != nil {
+			return err
 		}
 
 	}
