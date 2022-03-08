@@ -672,9 +672,10 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 				Reason:  fmt.Sprintf("could not parse key - value: %s - %v", key, value),
 			}
 		}
-
-		logMessage.EndpointProperty = endpointProperty
 	}
+
+	logMessage.EndpointProperty = endpointProperty
+
 	return nil
 }
 
