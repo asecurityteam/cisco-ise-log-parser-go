@@ -80,6 +80,8 @@ var variableDictionary = map[string]string{
 	"NetworkDeviceProfileID":  "NetworkDeviceProfileID",
 	"ConfigVersionId":         "ConfigVersionID",
 	"profile-name":            "ProfileName",
+	"sysDescr":                "SysDescription",
+	"hrDeviceDescr":           "HRDeviceDescription",
 }
 
 // Structs
@@ -88,6 +90,7 @@ var variableDictionary = map[string]string{
 type LogMessage struct {
 	ADErrorDetails                       *string               `json:",omitempty"`
 	ADGroupsNames                        *string               `json:",omitempty"`
+	ADOperatingSystem                    *string               `json:",omitempty"`
 	ADUserCandidateIdentities            *string               `json:",omitempty"`
 	ADUserDNSDomain                      *string               `json:",omitempty"`
 	ADUserJoinPoint                      *string               `json:",omitempty"`
@@ -136,6 +139,7 @@ type LogMessage struct {
 	Department                           *string               `json:",omitempty"`
 	DestinationIPAddress                 *string               `json:",omitempty"`
 	DestinationPort                      *string               `json:",omitempty"`
+	Description                          *string               `json:",omitempty"`
 	DetailedInfo                         *string               `json:",omitempty"`
 	DeviceIPAddress                      *string               `json:",omitempty"` // Ex. 86.75.30.9
 	DevicePort                           *string               `json:",omitempty"`
@@ -147,8 +151,13 @@ type LogMessage struct {
 	EAPKeyName                           *string               `json:",omitempty"`
 	EapChainingResult                    *string               `json:",omitempty"`
 	EmployeeID                           *string               `json:",omitempty"`
+	EndpointIdentityGroup                *string               `json:",omitempty"`
 	EndPointMACAddress                   *string               `json:",omitempty"`
 	EndPointMatchedProfile               *string               `json:",omitempty"`
+	EndpointMatchedPolicy                *string               `json:",omitempty"` // Ex. Printer, Apple-Device
+	EndpointPolicy                       *string               `json:",omitempty"`
+	EndpointIPAddress                    *string               `json:",omitempty"`
+	EndpointProperty                     *LogMessage           `json:",omitempty"`
 	EndpointOUI                          *string               `json:",omitempty"` // Ex. Apple, INC
 	EventTimestamp                       *string               `json:",omitempty"`
 	EventDescription                     *string               `json:",omitempty"`
@@ -160,6 +169,7 @@ type LogMessage struct {
 	FramedIPAddress                      *string               `json:",omitempty"`
 	FramedMTU                            *string               `json:",omitempty"`
 	FramedProtocol                       *string               `json:",omitempty"`
+	HRDeviceDescription                  *string               `json:",omitempty"`
 	HostIdentityGroup                    *string               `json:",omitempty"`
 	Hostname                             *string               `json:",omitempty"`
 	IPSEC                                *DropDown             `json:",omitempty"`
@@ -193,6 +203,7 @@ type LogMessage struct {
 	NetworkDeviceProfileID               *string               `json:",omitempty"`
 	NetworkDeviceProfileName             *string               `json:",omitempty"`
 	OU                                   *string               `json:",omitempty"`
+	OperatingSystem                      *string               `json:",omitempty"`
 	OriginalUserName                     *string               `json:",omitempty"`
 	PostureAssessmentStatus              *string               `json:",omitempty"`
 	Protocol                             *string               `json:",omitempty"`
@@ -220,6 +231,7 @@ type LogMessage struct {
 	SubjectAlternativeNameEmail          *string               `json:",omitempty"`
 	SubjectAlternativeNameOtheName       *string               `json:",omitempty"`
 	SubjectCommonName                    *string               `json:",omitempty"`
+	SysDescription                       *string               `json:",omitempty"`
 	TLSCipher                            *string               `json:",omitempty"`
 	TLSVersion                           *string               `json:",omitempty"`
 	Team                                 *DropDown             `json:",omitempty"`
@@ -620,6 +632,14 @@ func parseResponse(logMessage *LogMessage, key string, value string) error {
 
 // parseEndpointProperty is a custom function to parse the EndpointProperty field into the EndpointProperty field of the LogMessage struct
 func parseEndpointProperty(logMessage *LogMessage, key string, value string) error {
+
+	endpointProperty := &LogMessage{
+		MessageDetails: MessageDetails{
+			UnexpectedFields: map[string]string{},
+		},
+	}
+	endpointProperty.NetworkDeviceGroups = DropDownMap{}
+
 	endpointPropertySlice := strings.Split(value, `\,`)
 	if len(endpointPropertySlice) == 0 {
 		return &TypeMismatch{
@@ -637,12 +657,23 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 
 	for _, column := range endpointPropertySlice {
+		key, value := extractKeyValue(column)
 
-		err := parseField(logMessage, column, keyValueEndpointPropertyFuncMap)
+		parseFunc := keyValueEndpointPropertyFuncMap.retrieveParseFn(endpointProperty, key)
+		err := parseFunc(endpointProperty, formatKey(key), value)
 		if err != nil {
-			return err
+			if assignmentFailure, ok := err.(*AssignmentFailure); ok && strings.Contains(assignmentFailure.Message, "invalid-value") {
+				addUnexpectedKeyValue(endpointProperty, key, value)
+				continue
+			}
+			return &ParseError{
+				OrigErr: err,
+				Message: "parse-field-error",
+				Reason:  fmt.Sprintf("could not parse key - value: %s - %v", key, value),
+			}
 		}
 
+		logMessage.EndpointProperty = endpointProperty
 	}
 	return nil
 }
