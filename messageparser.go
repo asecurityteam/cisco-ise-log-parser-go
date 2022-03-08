@@ -23,6 +23,7 @@ const (
 	SupplicantStoppedResponding            IseLogEvent = 5411
 	EndpointConductedFailedAuthentications IseLogEvent = 5434
 	EndpointRestartedEAPSession            IseLogEvent = 5440
+	InfoProfilerEndpoint                   IseLogEvent = 80002
 )
 
 var eventTypeMap = map[string]IseLogEvent{
@@ -34,6 +35,7 @@ var eventTypeMap = map[string]IseLogEvent{
 	"5411 NOTICE Failed-Attempt":        SupplicantStoppedResponding,
 	"5434 NOTICE RADIUS":                EndpointConductedFailedAuthentications,
 	"5440 NOTICE RADIUS":                EndpointRestartedEAPSession,
+	"80002 INFO Profiler":               InfoProfilerEndpoint,
 }
 
 // StrToIseLogEvent converts the text label of an ISE log's CVS message to an enum.
@@ -78,6 +80,10 @@ var variableDictionary = map[string]string{
 	"NetworkDeviceProfileID":  "NetworkDeviceProfileID",
 	"ConfigVersionId":         "ConfigVersionID",
 	"profile-name":            "ProfileName",
+	"sysDescr":                "SysDescription",
+	"hrDeviceDescr":           "HRDeviceDescription",
+	"EndpointMacAddress":      "EndPointMACAddress",
+	"username":                "UserName",
 }
 
 // Structs
@@ -86,6 +92,7 @@ var variableDictionary = map[string]string{
 type LogMessage struct {
 	ADErrorDetails                       *string               `json:",omitempty"`
 	ADGroupsNames                        *string               `json:",omitempty"`
+	ADOperatingSystem                    *string               `json:",omitempty"`
 	ADUserCandidateIdentities            *string               `json:",omitempty"`
 	ADUserDNSDomain                      *string               `json:",omitempty"`
 	ADUserJoinPoint                      *string               `json:",omitempty"`
@@ -109,31 +116,38 @@ type LogMessage struct {
 	AcctTerminateCause                   *string               `json:",omitempty"`
 	AcsSessionID                         *string               `json:",omitempty"` // Ex. syd-isepsn01/386885261/12111391
 	AllowEasyWiredSession                *bool                 `json:",omitempty"`
+	AllowedProtocolMatchedRule           *string               `json:",omitempty"`
 	AirespaceWlanID                      *string               `json:",omitempty"`
 	AuthenticationIdentityStore          *string               `json:",omitempty"`
 	AuthenticationMethod                 *string               `json:",omitempty"`
 	AuthenticationStatus                 *string               `json:",omitempty"`
 	AuthorizationPolicyMatchedRule       *string               `json:",omitempty"`
 	BusinessUnit                         *string               `json:",omitempty"`
+	BYODRegistration                     *string               `json:",omitempty"`
 	CPMSessionID                         *string               `json:",omitempty"`
 	CVPN3000ASAPIX7xClientType           *string               `json:",omitempty"`
 	CVPN3000ASAPIX7xSessionSubtype       *string               `json:",omitempty"`
 	CVPN3000ASAPIX7xSessionType          *string               `json:",omitempty"`
 	CVPN3000ASAPIX7xTunnelGroupName      *string               `json:",omitempty"` // Ex. byod
 	CalledStationID                      []string              `json:",omitempty"`
+	CacheUpdateTime                      *string               `json:",omitempty"`
 	CallingStationID                     []string              `json:",omitempty"`
 	ChargeableUserIdentity               *string               `json:",omitempty"`
 	CiscoAVPair                          *CiscoAVPair          `json:",omitempty"`
 	Class                                []string              `json:",omitempty"`
 	Company                              *string               `json:",omitempty"`
 	ConfigVersionID                      *string               `json:",omitempty"`
+	CreateTime                           *string               `json:",omitempty"`
 	CurrentIDStoreName                   *string               `json:",omitempty"`
 	DC                                   []string              `json:",omitempty"`
+	DeviceIdentifier                     *string               `json:",omitempty"`
 	DTLSSupport                          *string               `json:",omitempty"`
 	DaysToExpiry                         *string               `json:",omitempty"`
 	Department                           *string               `json:",omitempty"`
+	DevicePlatform                       *string               `json:",omitempty"`
 	DestinationIPAddress                 *string               `json:",omitempty"`
 	DestinationPort                      *string               `json:",omitempty"`
+	Description                          *string               `json:",omitempty"`
 	DetailedInfo                         *string               `json:",omitempty"`
 	DeviceIPAddress                      *string               `json:",omitempty"` // Ex. 86.75.30.9
 	DevicePort                           *string               `json:",omitempty"`
@@ -145,8 +159,18 @@ type LogMessage struct {
 	EAPKeyName                           *string               `json:",omitempty"`
 	EapChainingResult                    *string               `json:",omitempty"`
 	EmployeeID                           *string               `json:",omitempty"`
+	EndpointCertainityMetric             *string               `json:",omitempty"`
+	EndpointIdentityGroup                *string               `json:",omitempty"`
 	EndPointMACAddress                   *string               `json:",omitempty"`
 	EndPointMatchedProfile               *string               `json:",omitempty"`
+	EndpointMatchedPolicy                *string               `json:",omitempty"` // Ex. Printer, Apple-Device
+	EndpointPolicy                       *string               `json:",omitempty"`
+	EndPointPolicyID                     *string               `json:",omitempty"`
+	EndpointIPAddress                    *string               `json:",omitempty"`
+	EndpointNADAddress                   *string               `json:",omitempty"`
+	EndpointProperty                     *LogMessage           `json:",omitempty"`
+	EndpointOUI                          *string               `json:",omitempty"` // Ex. Apple, INC
+	EndpointSourceEvent                  *string               `json:",omitempty"`
 	EventTimestamp                       *string               `json:",omitempty"`
 	EventDescription                     *string               `json:",omitempty"`
 	EventType                            *IseLogEvent          `json:",omitempty"`
@@ -154,14 +178,19 @@ type LogMessage struct {
 	ExtendedKeyUsageOID                  []string              `json:",omitempty"`
 	ExternalGroups                       []string              `json:",omitempty"`
 	FailureReason                        *string               `json:",omitempty"`
+	FirstCollection                      *string               `json:",omitempty"`
+	FeedService                          *bool                 `json:",omitempty"`
 	FramedIPAddress                      *string               `json:",omitempty"`
 	FramedMTU                            *string               `json:",omitempty"`
 	FramedProtocol                       *string               `json:",omitempty"`
+	HRDeviceDescription                  *string               `json:",omitempty"`
 	HostIdentityGroup                    *string               `json:",omitempty"`
+	Hostname                             *string               `json:",omitempty"`
 	IPSEC                                *DropDown             `json:",omitempty"`
 	ISEPolicySetName                     *string               `json:",omitempty"`
 	IdentityAccessRestricted             *string               `json:",omitempty"`
 	IdentityGroup                        *string               `json:",omitempty"`
+	IdentityGroupID                      *string               `json:",omitempty"`
 	IdentityPolicyMatchedRule            *string               `json:",omitempty"`
 	IdentitySelectionMatchedRule         *string               `json:",omitempty"`
 	IsEndpointInRejectMode               *bool                 `json:",omitempty"`
@@ -172,10 +201,15 @@ type LogMessage struct {
 	IssuerCommonName                     *string               `json:",omitempty"`
 	IssuerDomainComponent                []string              `json:",omitempty"`
 	KeyUsage                             []string              `json:",omitempty"`
+	LastActivity                         *string               `json:",omitempty"`
+	LastNmapScanTime                     *string               `json:",omitempty"`
 	LicenseTypes                         *string               `json:",omitempty"`
 	Location                             *DropDown             `json:",omitempty"`
 	LocationL                            *string               `json:",omitempty"`
 	LocationCapable                      *string               `json:",omitempty"`
+	MatchedPolicyID                      *string               `json:",omitempty"`
+	MessageCode                          *string               `json:",omitempty"`
+	MDMServerID                          *string               `json:",omitempty"`
 	ModelName                            *string               `json:",omitempty"`
 	NASIPAddress                         *string               `json:",omitempty"`
 	NASIdentifier                        *string               `json:",omitempty"`
@@ -188,13 +222,22 @@ type LogMessage struct {
 	NetworkDeviceName                    *string               `json:",omitempty"`
 	NetworkDeviceProfileID               *string               `json:",omitempty"`
 	NetworkDeviceProfileName             *string               `json:",omitempty"`
+	NmapScanCount                        *int                  `json:",omitempty"`
 	OU                                   *string               `json:",omitempty"`
+	OperatingSystem                      *string               `json:",omitempty"`
 	OriginalUserName                     *string               `json:",omitempty"`
+	PhoneID                              *string               `json:",omitempty"`
+	PostureApplicable                    *string               `json:",omitempty"`
 	PostureAssessmentStatus              *string               `json:",omitempty"`
+	PostureExpiry                        *string               `json:",omitempty"`
+	PolicyVersion                        *string               `json:",omitempty"`
+	ProfilerServer                       *string               `json:",omitempty"`
 	Protocol                             *string               `json:",omitempty"`
+	PortalUser                           *string               `json:",omitempty"`
 	QueryResult                          *string               `json:",omitempty"`
 	RadiusFlowType                       *string               `json:",omitempty"`
 	RadiusPacketType                     *string               `json:",omitempty"`
+	RegistrationTimeStamp                *string               `json:",omitempty"`
 	RequestLatency                       *int                  `json:",omitempty"`
 	Response                             *LogMessage           `json:",omitempty"`
 	Role                                 *DropDown             `json:",omitempty"`
@@ -208,6 +251,8 @@ type LogMessage struct {
 	ServiceType                          *string               `json:",omitempty"`
 	SoftwareVersion                      *string               `json:",omitempty"`
 	State                                []string              `json:",omitempty"`
+	StaticAssignment                     *bool                 `json:",omitempty"`
+	StaticGroupAssignment                *bool                 `json:",omitempty"`
 	Step                                 []string              `json:",omitempty"`
 	StepData                             *string               `json:",omitempty"`
 	StepLatency                          *string               `json:",omitempty"`
@@ -216,11 +261,14 @@ type LogMessage struct {
 	SubjectAlternativeNameEmail          *string               `json:",omitempty"`
 	SubjectAlternativeNameOtheName       *string               `json:",omitempty"`
 	SubjectCommonName                    *string               `json:",omitempty"`
+	SysDescription                       *string               `json:",omitempty"`
 	TLSCipher                            *string               `json:",omitempty"`
 	TLSVersion                           *string               `json:",omitempty"`
 	Team                                 *DropDown             `json:",omitempty"`
 	TemplateName                         *string               `json:",omitempty"`
 	TerminationAction                    *string               `json:",omitempty"`
+	TimeToProfile                        *string               `json:",omitempty"`
+	TotalCertaintyFactor                 *string               `json:",omitempty"`
 	TotalFailedAttempts                  *int                  `json:",omitempty"`
 	TotalFailedTime                      *int                  `json:",omitempty"`
 	TextEncodedORAddress                 *TextEncodedORAddress `json:",omitempty"`
@@ -230,10 +278,20 @@ type LogMessage struct {
 	TunnelType                           *string               `json:",omitempty"`
 	Type                                 *string               `json:",omitempty"`
 	Undefined151                         *string               `json:",omitempty"`
+	UniqueSubjectID                      *string               `json:",omitempty"`
 	UseCase                              *string               `json:",omitempty"`
 	UserAccountControl                   *string               `json:",omitempty"`
 	UserName                             *string               `json:",omitempty"` // Ex. bwayne
+	UserFetchCountryName                 *string               `json:",omitempty"`
+	UserFetchEmail                       *string               `json:",omitempty"`
+	UserFetchFirstName                   *string               `json:",omitempty"`
+	UserFetchJobTitle                    *string               `json:",omitempty"`
+	UserFetchLastName                    *string               `json:",omitempty"`
+	UserFetchUserName                    *string               `json:",omitempty"`
+	UserFetchStreetAddress               *string               `json:",omitempty"`
+	UserFetchTelephone                   *string               `json:",omitempty"`
 	UserType                             *string               `json:",omitempty"`
+	UpdateTime                           *string               `json:",omitempty"`
 	MessageDetails                       MessageDetails        `json:",omitempty"`
 }
 
@@ -358,6 +416,7 @@ var keyValueParseFuncMap = parseFnMap{
 	"#015":                 parseDisregard,
 	"cisco-av-pair":        parseCiscoAVPair,
 	"textEncodedORAddress": parseTextEncodedORAddress,
+	"EndpointProperty":     parseEndpointProperty,
 	"Response":             parseResponse,
 }
 
@@ -610,6 +669,55 @@ func parseResponse(logMessage *LogMessage, key string, value string) error {
 	}
 
 	logMessage.Response = response
+	return nil
+}
+
+// parseEndpointProperty is a custom function to parse the EndpointProperty field into the EndpointProperty field of the LogMessage struct
+func parseEndpointProperty(logMessage *LogMessage, key string, value string) error {
+
+	endpointProperty := &LogMessage{
+		MessageDetails: MessageDetails{
+			UnexpectedFields: map[string]string{},
+		},
+	}
+	endpointProperty.NetworkDeviceGroups = DropDownMap{}
+
+	endpointPropertySlice := strings.Split(value, `\,`)
+	if len(endpointPropertySlice) == 0 {
+		return &TypeMismatch{
+			Original: endpointPropertySlice,
+			Type:     "EndpointProperty",
+		}
+	}
+
+	var keyValueEndpointPropertyFuncMap = parseFnMap{
+		"textEncodedORAddress": parseDisregard, // Contents differ and cannot use its parse func. Information is not valuable in 80002 event so ignore
+		"#015":                 parseDisregard,
+		"cisco-av-pair":        parseCiscoAVPair,
+		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType, so ignore
+		"Response":             parseResponse,
+	}
+
+	for _, column := range endpointPropertySlice {
+		key, value := extractKeyValue(column)
+
+		parseFunc := keyValueEndpointPropertyFuncMap.retrieveParseFn(endpointProperty, key)
+		err := parseFunc(endpointProperty, formatKey(key), value)
+		if err != nil {
+			if assignmentFailure, ok := err.(*AssignmentFailure); ok && strings.Contains(assignmentFailure.Message, "invalid-value") {
+				addUnexpectedKeyValue(endpointProperty, key, value)
+				continue
+			}
+			return &ParseError{
+				OrigErr: err,
+				Message: "parse-field-error",
+				Reason:  fmt.Sprintf("could not parse key - value: %s - %v", key, value),
+			}
+		}
+	}
+
+	logMessage.EndpointProperty = endpointProperty
+
 	return nil
 }
 
