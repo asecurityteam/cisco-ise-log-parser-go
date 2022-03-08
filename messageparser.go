@@ -724,7 +724,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value string) error {
 	splitValue := strings.SplitN(value, "FeedService", 2)
 	cleanedJSON := strings.ReplaceAll(splitValue[0], `\\\\ `, ",") // add commas
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`)       // replace espaced quotes
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`)       // replace escaped quotes
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")         // remove extra backslashes
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"deviceid"`, `{"deviceid"`)
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, "]]", "]}]")
