@@ -691,7 +691,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 
 	var keyValueEndpointPropertyFuncMap = parseFnMap{
-		"textEncodedORAddress": parseDisregard, // Contents differ and cannot use its parse func. Information is not valuable in 80002 event so ignore
+		"textEncodedORAddress": parseEndpointPropertyTextEncoded,
 		"#015":                 parseDisregard,
 		"cisco-av-pair":        parseCiscoAVPair,
 		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType, so ignore
@@ -718,6 +718,28 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 
 	logMessage.EndpointProperty = endpointProperty
 
+	return nil
+}
+
+func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value string) error {
+	splitValue := strings.SplitN(value, "FeedService", 2)
+	cleanedJSON := strings.ReplaceAll(splitValue[0], `\\\\ `, ",") // add commas
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`)       // replace espaced quotes
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")         // remove extra backslashes
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"deviceid"`, `{"deviceid"`)
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, "]]", "]}]")
+	cleanedJSON = `{` + cleanedJSON + `}`
+
+	var textEncodedORAddress TextEncodedORAddress
+	err := json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
+	if err != nil {
+		return &ParseError{
+			OrigErr: err,
+			Message: "parse-unmarshal-error",
+			Reason:  fmt.Sprintf("failed to unmarshal %s into TextEncodedORAddress struct", cleanedJSON),
+		}
+	}
+	logMessage.TextEncodedORAddress = &textEncodedORAddress
 	return nil
 }
 
