@@ -82,6 +82,7 @@ var variableDictionary = map[string]string{
 	"profile-name":            "ProfileName",
 	"sysDescr":                "SysDescription",
 	"hrDeviceDescr":           "HRDeviceDescription",
+	"EndpointMacAddress":      "EndPointMACAddress",
 }
 
 // Structs
@@ -151,14 +152,17 @@ type LogMessage struct {
 	EAPKeyName                           *string               `json:",omitempty"`
 	EapChainingResult                    *string               `json:",omitempty"`
 	EmployeeID                           *string               `json:",omitempty"`
+	EndpointCertainityMetric             *string               `json:",omitempty"`
 	EndpointIdentityGroup                *string               `json:",omitempty"`
 	EndPointMACAddress                   *string               `json:",omitempty"`
 	EndPointMatchedProfile               *string               `json:",omitempty"`
 	EndpointMatchedPolicy                *string               `json:",omitempty"` // Ex. Printer, Apple-Device
 	EndpointPolicy                       *string               `json:",omitempty"`
 	EndpointIPAddress                    *string               `json:",omitempty"`
+	EndpointNADAddress                   *string               `json:",omitempty"`
 	EndpointProperty                     *LogMessage           `json:",omitempty"`
 	EndpointOUI                          *string               `json:",omitempty"` // Ex. Apple, INC
+	EndpointSourceEvent                  *string               `json:",omitempty"`
 	EventTimestamp                       *string               `json:",omitempty"`
 	EventDescription                     *string               `json:",omitempty"`
 	EventType                            *IseLogEvent          `json:",omitempty"`
@@ -206,6 +210,7 @@ type LogMessage struct {
 	OperatingSystem                      *string               `json:",omitempty"`
 	OriginalUserName                     *string               `json:",omitempty"`
 	PostureAssessmentStatus              *string               `json:",omitempty"`
+	ProfilerServer                       *string               `json:",omitempty"`
 	Protocol                             *string               `json:",omitempty"`
 	QueryResult                          *string               `json:",omitempty"`
 	RadiusFlowType                       *string               `json:",omitempty"`
