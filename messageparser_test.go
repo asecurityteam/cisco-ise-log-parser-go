@@ -77,6 +77,12 @@ func TestParseMessageCSV(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
+			name:            "Multiple devices in TextEncodedORAddress, but the most broken JSON",
+			log:             `5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"mac\": [\"11-22-33-44-55-66\"\\, \"aa-bb-cc-dd-ee\"\\, \"aa-bb-cc-dd-ee\"\\, \"aa-bb-cc-dd-ee\"\\, \"aa-bb-cc-dd-ee\"]\\} \\{\"deviceid\": \"5803-8866-6173-0383-2280-5705-51\"\\, \"mac\": []\\}\"deviceid\": \"ABC123\"\\, \"mac\": [\"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"\\, \"xy-z1-23-45-67\"]\\}\"deviceid\": \"7656-5473-8877-6280-3089-4757-72\"\\,]\\}`,
+			expectedMarshal: []byte(`{"EventDescription":"Authentication succeeded","EventType":5200,"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55-66","aa-bb-cc-dd-ee","aa-bb-cc-dd-ee","aa-bb-cc-dd-ee","aa-bb-cc-dd-ee"]},{"deviceid":"5803-8866-6173-0383-2280-5705-51"},{"deviceid":"ABC123","mac":["xy-z1-23-45-67","xy-z1-23-45-67","xy-z1-23-45-67","xy-z1-23-45-67","xy-z1-23-45-67","xy-z1-23-45-67","xy-z1-23-45-67","xy-z1-23-45-67"]},{"deviceid":"7656-5473-8877-6280-3089-4757-72"}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
 			name:            "Wrong type for field - DropDownMap",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, NetworkDeviceGroups=NotADropDownMap`,
 			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),

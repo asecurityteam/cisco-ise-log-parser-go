@@ -600,7 +600,9 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string) error {
 	cleanedJSON := strings.ReplaceAll(value, `\`, "")
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, " ", "")
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`) // insert comma if JSON array is missing it
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}"deviceid"`, `},{"deviceid"`) // insert potentially missing brackets
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`)                    // insert comma if JSON array is missing it
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `","mac":[]}]}`)        // insert potentially missing mac field
 
 	var textEncodedORAddress TextEncodedORAddress
 	err := json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
