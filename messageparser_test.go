@@ -83,6 +83,18 @@ func TestParseMessageCSV(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
+			name:            "Multiple devices in TextEncodedORAddress, but with less escaped strings and other log fields",
+			log:             `5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\{"devices": [\{"deviceid": "abcd"\, "mac": ["11-22-33-44-55"\, "aa-bb-cc-dd-ee"\, "a1-b2-c3-d4-e5"\, "123"\, "456"]\} \{"deviceid": "1362-8866-6173-0383-2280-5705-51"\, "mac": []\}"deviceid": "7646-5473-8877-6280-3089-4757-72"\,]\}, distinguishedName=CN=rlovell\,OU=people\,DC=office\,DC=atlassian\,DC=com, Response={Class=StaffManagedPolicy; Class=CACS:0a6c3e2445ec7000623c54c3:sc1-isepsn01/434427638/15628091; cisco-av-pair=profile-name=Macintosh-Workstation; LicenseTypes=1; },#015`,
+			expectedMarshal: []byte(`{"DistinguishedName":"CN=rlovell,OU=people,DC=office,DC=atlassian,DC=com","EventDescription":"Authentication succeeded","EventType":5200,"Response":{"CiscoAVPair":{"ProfileName":"Macintosh-Workstation"},"Class":["StaffManagedPolicy","CACS:0a6c3e2445ec7000623c54c3:sc1-isepsn01/434427638/15628091"],"LicenseTypes":"1","MessageDetails":{"UnexpectedFields":{}}},"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","a1-b2-c3-d4-e5","123","456"]},{"deviceid":"1362-8866-6173-0383-2280-5705-51"},{"deviceid":"7646-5473-8877-6280-3089-4757-72"}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
+			name:            "Multiple devices in TextEncodedORAddress, a different missing JSON closure",
+			log:             `5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\} \\{\"deviceid\": \"xyz\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\,]\\}, sAMAccountName=asdf, distinguishedName=CN=asdf\\,OU=people\\,DC=asdf\\,DC=abc\\,DC=com, Response={Class=BYODPolicy; Class=CACS:32132132:sc1-isepsn01/434427638/12312312; LicenseTypes=1; },#015`,
+			expectedMarshal: []byte(`{"DistinguishedName":"CN=asdf\\,OU=people\\,DC=asdf\\,DC=abc\\,DC=com","EventDescription":"Authentication succeeded","EventType":5200,"Response":{"Class":["BYODPolicy","CACS:32132132:sc1-isepsn01/434427638/12312312"],"LicenseTypes":"1","MessageDetails":{"UnexpectedFields":{}}},"SAMAccountName":"asdf","TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]},{"deviceid":"xyz","mac":["11-22-33-44-55","aa-bb-cc-dd-ee"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
 			name:            "Wrong type for field - DropDownMap",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, NetworkDeviceGroups=NotADropDownMap`,
 			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
