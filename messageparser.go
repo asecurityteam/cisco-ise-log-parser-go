@@ -743,16 +743,27 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 }
 
 func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value string) error {
-	splitValue := strings.SplitN(value, "FeedService", 2)
-	cleanedJSON := strings.ReplaceAll(splitValue[0], `\\\\ `, ",") // add commas
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`)       // replace escaped quotes
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")         // remove extra backslashes
+
+	// Decode the hex encoded value
+	valueBytes, err := hex.DecodeString(value)
+	if err != nil {
+		return &ParseError{
+			OrigErr: err,
+			Message: "parse-decode-error",
+			Reason:  fmt.Sprintf("failed to hex decode value: %s", value),
+		}
+	}
+	value = string(valueBytes)
+
+	cleanedJSON := strings.ReplaceAll(value, `\\\\ `, ",")   // add commas
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`) // replace escaped quotes
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")   // remove extra backslashes
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"deviceid"`, `{"deviceid"`)
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, "]]", "]}]")
 	cleanedJSON = `{` + cleanedJSON + `}`
 
 	var textEncodedORAddress TextEncodedORAddress
-	err := json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
+	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
 	if err != nil {
 		return &ParseError{
 			OrigErr: err,
@@ -855,11 +866,6 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 // and fixing the broken JSON of the field/getting the necessary data out from it.
 func hexEncodeTextEncodedORAddress(body string) string {
 
-	// Don't encode 80002 profiler events. Those are parsed differently
-	if strings.Contains(body, "Profiler EndPoint profiling event occurred") {
-		return body
-	}
-
 	// Find the start index of the textEncodedORAddress string
 	startIdx := strings.Index(body, "textEncodedORAddress=") + len("textEncodedORAddress=")
 	if startIdx == -1+len("textEncodedORAddress=") || startIdx > len(body) {
@@ -867,11 +873,21 @@ func hexEncodeTextEncodedORAddress(body string) string {
 	}
 
 	// Find the end index of the textEncodedORAddress string
-	endIdx := strings.Index(body[startIdx:], "=") + startIdx
-	if endIdx == -1+startIdx {
-		endIdx = len(body) // The texEncodedORAddress field happened to be the last field in the logs
-	} else if newEndIdx := strings.LastIndex(body[:endIdx], ", "); newEndIdx != -1 {
-		endIdx = newEndIdx // Trim off the next key in the body if there is one
+	var endIdx int
+	if strings.Contains(body, "Profiler EndPoint profiling event occurred") {
+		endIdx = strings.Index(body[startIdx:], "FeedService") + startIdx
+		if endIdx == -1+startIdx {
+			endIdx = len(body)
+		} else {
+			body = body[:endIdx] + `\\,` + body[endIdx:] // Add a missing comma for the logs to split correctly
+		}
+	} else { // All non-profiling event types
+		endIdx = strings.Index(body[startIdx:], "=") + startIdx
+		if endIdx == -1+startIdx {
+			endIdx = len(body) // The texEncodedORAddress field happened to be the last field in the logs
+		} else if newEndIdx := strings.LastIndex(body[:endIdx], ", "); newEndIdx != -1 {
+			endIdx = newEndIdx // Trim off the next key in the body if there is one
+		}
 	}
 
 	// This case shouldn't be possible, but something went
