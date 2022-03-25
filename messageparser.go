@@ -1,6 +1,7 @@
 package ciscoiselogparser
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -598,14 +599,31 @@ func parseCiscoAVPair(logMessage *LogMessage, key string, value string) error {
 
 // parseTextEncodedORAddress is a custom function to parse the textEncodedORAddress field into the TextEncodedORAddress field of the LogMessage struct.
 func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string) error {
+
+	// Decode the hex encoded value
+	valueBytes, err := hex.DecodeString(value)
+	if err != nil {
+		return &ParseError{
+			OrigErr: err,
+			Message: "parse-decode-error",
+			Reason:  fmt.Sprintf("failed to hex decode value: %s", value),
+		}
+	}
+	value = string(valueBytes)
+
 	cleanedJSON := strings.ReplaceAll(value, `\`, "")
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, " ", "")
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}"deviceid"`, `},{"deviceid"`) // insert potentially missing brackets
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`)                    // insert comma if JSON array is missing it
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `","mac":[]}]}`)        // insert potentially missing mac field
+
+	if strings.LastIndex(cleanedJSON, "deviceid") > strings.LastIndex(cleanedJSON, "mac") {
+		cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `","mac":[]}]}`) // insert potentially missing mac field
+	} else {
+		cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `"]}]}`) // insert potentially closing bracket
+	}
 
 	var textEncodedORAddress TextEncodedORAddress
-	err := json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
+	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
 	if err != nil {
 		return &ParseError{
 			OrigErr: err,
@@ -725,16 +743,27 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 }
 
 func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value string) error {
-	splitValue := strings.SplitN(value, "FeedService", 2)
-	cleanedJSON := strings.ReplaceAll(splitValue[0], `\\\\ `, ",") // add commas
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`)       // replace escaped quotes
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")         // remove extra backslashes
+
+	// Decode the hex encoded value
+	valueBytes, err := hex.DecodeString(value)
+	if err != nil {
+		return &ParseError{
+			OrigErr: err,
+			Message: "parse-decode-error",
+			Reason:  fmt.Sprintf("failed to hex decode value: %s", value),
+		}
+	}
+	value = string(valueBytes)
+
+	cleanedJSON := strings.ReplaceAll(value, `\\\\ `, ",")   // add commas
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`) // replace escaped quotes
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")   // remove extra backslashes
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"deviceid"`, `{"deviceid"`)
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, "]]", "]}]")
 	cleanedJSON = `{` + cleanedJSON + `}`
 
 	var textEncodedORAddress TextEncodedORAddress
-	err := json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
+	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
 	if err != nil {
 		return &ParseError{
 			OrigErr: err,
@@ -817,8 +846,7 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 	title = sectionSplit[0] // ex. "3002 NOTICE Radius-Accounting"
 
 	body := sectionSplit[1]
-	body = strings.ReplaceAll(body, `}"`, `},{"`) // fix missing JSON brackets. Note this could be risky and might need to be removed if parsing starts failing
-	body = replaceUnescapedJSONCommas(body)
+	body = hexEncodeTextEncodedORAddress(body)
 	body = strings.ReplaceAll(body, `\,`, "{COMMA}") // replace escaped commas with "{COMMA}" so that we can split by "," later.
 	body = strings.ReplaceAll(body, `\;`, "{SEMICOLON}")
 
@@ -832,33 +860,46 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 	return title, fields, nil
 }
 
-// Some of the fields in the logs contain JSON data that hasn't been properly escaped for CSV.
-// This function replaces commas within JSON payloads with `{COMMA}` so that the CSV can be correctly split
-func replaceUnescapedJSONCommas(body string) (newbody string) {
+// hexEncodeTextEncodedORAddress separates the value of the textEncodedORAddress field,
+// hex encodes it's data so that the rest of the log can be parsed correctly.
+// The parseTextEncodedORAddress function that runs later on deals with decoding the value
+// and fixing the broken JSON of the field/getting the necessary data out from it.
+func hexEncodeTextEncodedORAddress(body string) string {
 
-	bracketCount := 0
-	lastWriteIndex := 0
-
-	for i, c := range body {
-
-		char := string(c)
-
-		if char == `{` {
-			bracketCount++
-		} else if char == `}` {
-			bracketCount--
-		}
-
-		if bracketCount > 0 && i > 0 {
-			if char == `,` && string(body[i-1]) != `\` {
-				newbody = newbody + body[lastWriteIndex:i] + `{COMMA}` // append to a new string bc we're iterating over the old one
-				lastWriteIndex = i + 1                                 // plus 1 to skip the comma
-			}
-		}
-
+	// Find the start index of the textEncodedORAddress string
+	startIdx := strings.Index(body, "textEncodedORAddress=") + len("textEncodedORAddress=")
+	if startIdx == -1+len("textEncodedORAddress=") || startIdx > len(body) {
+		return body
 	}
 
-	return newbody + body[lastWriteIndex:]
+	// Find the end index of the textEncodedORAddress string
+	var endIdx int
+	if strings.Contains(body, "Profiler EndPoint profiling event occurred") {
+		endIdx = strings.Index(body[startIdx:], "FeedService") + startIdx
+		if endIdx == -1+startIdx {
+			endIdx = len(body)
+		} else {
+			body = body[:endIdx] + `\\,` + body[endIdx:] // Add a missing comma for the logs to split correctly
+		}
+	} else { // All non-profiling event types
+		endIdx = strings.Index(body[startIdx:], "=") + startIdx
+		if endIdx == -1+startIdx {
+			endIdx = len(body) // The texEncodedORAddress field happened to be the last field in the logs
+		} else if newEndIdx := strings.LastIndex(body[:endIdx], ", "); newEndIdx != -1 {
+			endIdx = newEndIdx // Trim off the next key in the body if there is one
+		}
+	}
+
+	// This case shouldn't be possible, but something went
+	// wrong determining the endIdx, parsing might fail later on
+	if endIdx < startIdx || endIdx > len(body) {
+		return body
+	}
+
+	unencodedTextEncodedORAddress := []byte(body[startIdx:endIdx])
+	hexEncodedTextEncodedORAddress := hex.EncodeToString(unencodedTextEncodedORAddress)
+
+	return body[:startIdx] + hexEncodedTextEncodedORAddress + body[endIdx:]
 }
 
 // Reflection Utilities
