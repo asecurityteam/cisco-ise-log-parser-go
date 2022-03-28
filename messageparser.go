@@ -755,7 +755,7 @@ func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value 
 	}
 	value = string(valueBytes)
 
-	cleanedJSON := strings.ReplaceAll(value, `\\\\ `, ",")   // add commas
+	cleanedJSON := strings.ReplaceAll(value, `\\ `, ",")     // add commas
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`) // replace escaped quotes
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")   // remove extra backslashes
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"deviceid"`, `{"deviceid"`)
@@ -855,7 +855,7 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 
 	fields = strings.Split(body, ", ")
 	for i := range fields {
-		fields[i] = strings.ReplaceAll(strings.ReplaceAll(fields[i], "{COMMA}", ","), "{SEMICOLON}", ";")
+		fields[i] = strings.ReplaceAll(strings.ReplaceAll(fields[i], "{COMMA}", `\,`), "{SEMICOLON}", `\;`)
 	}
 	return title, fields, nil
 }
@@ -879,7 +879,7 @@ func hexEncodeTextEncodedORAddress(body string) string {
 		if endIdx == -1+startIdx {
 			endIdx = len(body)
 		} else {
-			body = body[:endIdx] + `\\,` + body[endIdx:] // Add a missing comma for the logs to split correctly
+			body = body[:endIdx] + `\,` + body[endIdx:] // Add a missing comma for the logs to split correctly
 		}
 	} else { // All non-profiling event types
 		endIdx = strings.Index(body[startIdx:], "=") + startIdx
