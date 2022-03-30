@@ -703,6 +703,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 	endpointProperty.NetworkDeviceGroups = DropDownMap{}
 
+	value = strings.ReplaceAll(value, `\, `, "{COMMA}") // replace certain commas with "{COMMA}" so that we don't split by it
 	endpointPropertySlice := strings.Split(value, `\,`)
 	if len(endpointPropertySlice) == 0 {
 		return &TypeMismatch{
@@ -720,6 +721,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 
 	for _, column := range endpointPropertySlice {
+		column = strings.ReplaceAll(column, "{COMMA}", `\, `) // restore the commas from earlier now that the endpointProperty has been split
 		key, value := extractKeyValue(column)
 
 		parseFunc := keyValueEndpointPropertyFuncMap.retrieveParseFn(endpointProperty, key)
