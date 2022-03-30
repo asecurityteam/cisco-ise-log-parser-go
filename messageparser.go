@@ -92,7 +92,7 @@ var variableDictionary = map[string]string{
 // LogMessage is a structure populated with the CSV field information from the message field of an ISE log.
 type LogMessage struct {
 	ADErrorDetails                       *string               `json:",omitempty"`
-	ADFetchHostname                      *string               `json:",omitempty"`
+	ADFetchHostName                      *string               `json:",omitempty"`
 	ADGroupsNames                        *string               `json:",omitempty"`
 	ADOperatingSystem                    *string               `json:",omitempty"`
 	ADUserCandidateIdentities            *string               `json:",omitempty"`
