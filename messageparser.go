@@ -718,6 +718,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 		"cisco-av-pair":        parseCiscoAVPair,
 		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType, so ignore
 		"Response":             parseResponse,
+		"Location":             parseDisregard, // Different type than LogMessage's Location, so ignore
 	}
 
 	for _, column := range endpointPropertySlice {
