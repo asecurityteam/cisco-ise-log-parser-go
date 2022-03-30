@@ -92,7 +92,7 @@ var variableDictionary = map[string]string{
 // LogMessage is a structure populated with the CSV field information from the message field of an ISE log.
 type LogMessage struct {
 	ADErrorDetails                       *string               `json:",omitempty"`
-	ADFetchHostname                      *string               `json:",omitempty"`
+	ADFetchHostName                      *string               `json:",omitempty"`
 	ADGroupsNames                        *string               `json:",omitempty"`
 	ADOperatingSystem                    *string               `json:",omitempty"`
 	ADUserCandidateIdentities            *string               `json:",omitempty"`
@@ -703,6 +703,7 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 	}
 	endpointProperty.NetworkDeviceGroups = DropDownMap{}
 
+	value = strings.ReplaceAll(value, `\, `, "{COMMA}") // replace certain commas with "{COMMA}" so that we don't split by it
 	endpointPropertySlice := strings.Split(value, `\,`)
 	if len(endpointPropertySlice) == 0 {
 		return &TypeMismatch{
@@ -717,9 +718,11 @@ func parseEndpointProperty(logMessage *LogMessage, key string, value string) err
 		"cisco-av-pair":        parseCiscoAVPair,
 		"device-type":          parseDisregard, // Different type than LogMessage's DeviceType, so ignore
 		"Response":             parseResponse,
+		"Location":             parseDisregard, // Different type than LogMessage's Location, so ignore
 	}
 
 	for _, column := range endpointPropertySlice {
+		column = strings.ReplaceAll(column, "{COMMA}", `\, `) // restore the commas from earlier now that the endpointProperty has been split
 		key, value := extractKeyValue(column)
 
 		parseFunc := keyValueEndpointPropertyFuncMap.retrieveParseFn(endpointProperty, key)
@@ -755,12 +758,12 @@ func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value 
 	}
 	value = string(valueBytes)
 
-	cleanedJSON := strings.ReplaceAll(value, `\\ `, ",")     // add commas
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\"`, `"`) // replace escaped quotes
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, "")   // remove extra backslashes
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"deviceid"`, `{"deviceid"`)
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, "]]", "]}]")
-	cleanedJSON = `{` + cleanedJSON + `}`
+	cleanedJSON := strings.ReplaceAll(value, `]\\ `, `]},`)    // add close brackets with comma
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\\ `, ",")  // add commas
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\\"`, `{"`) // add open brackets
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"\\`, `"}`) // add close brackets
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `]\\`, `]}`) // add close brackets
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, ``)     // remove extra escapes
 
 	var textEncodedORAddress TextEncodedORAddress
 	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
