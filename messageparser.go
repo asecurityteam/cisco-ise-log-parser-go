@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -758,24 +759,60 @@ func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value 
 	}
 	value = string(valueBytes)
 
-	cleanedJSON := strings.ReplaceAll(value, `]\\ `, `]},`)    // add close brackets with comma
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\\ `, ",")  // add commas
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\\"`, `{"`) // add open brackets
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `"\\`, `"}`) // add close brackets
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `]\\`, `]}`) // add close brackets
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `\`, ``)     // remove extra escapes
+	genericCleanTextEncodedORAddressFunc := func(value string) string {
+		value = strings.ReplaceAll(value, `]\\ `, `]},`)   // corner case: add close brackets with comma
+		value = strings.ReplaceAll(value, `]\\"`, `]},{"`) // corner case: add open and close brackets with comma
+		value = strings.ReplaceAll(value, `\\ `, ",")      // add commas
+		value = strings.ReplaceAll(value, `\\"`, `{"`)     // add open brackets
+		value = strings.ReplaceAll(value, `"\\`, `"}`)     // add close brackets
+		value = strings.ReplaceAll(value, `]\\`, `]}`)     // add close brackets
+		return strings.ReplaceAll(value, `\`, ``)          // remove extra escapes
+	}
+
+	cleanTextEncodedORAddressFuncs := []func(string) string{
+		// Generic case
+		genericCleanTextEncodedORAddressFunc,
+		// The remaining functions cover corner cases
+		func(value string) string {
+			value = strings.ReplaceAll(value, `]\\ "deviceid`, `], "deviceid`) // corner case: add comma between mac array and deviceid
+			return genericCleanTextEncodedORAddressFunc(value)
+		},
+		func(value string) string {
+			value = strings.ReplaceAll(value, `"\\]\\`, `"]}]}`) // corner case: add correct closures
+			return genericCleanTextEncodedORAddressFunc(value)
+		},
+		func(value string) string {
+			// Part of the regex determined from: https://stackoverflow.com/a/466167
+			regex := regexp.MustCompile(`"deviceid": "[0-9a-zA-Z]+"\\\\ "(m(a[^c]|[^a])|[^m])`) // corner case: add missing mac key between deviceid and mac values
+			regexMatches := regex.FindAllString(value, -1)
+			for _, match := range regexMatches {
+				if len(match) >= 2 {
+					replacement := match[:len(match)-2] + `"mac":[` + match[len(match)-2:]
+					value = strings.ReplaceAll(value, match, replacement)
+				}
+			}
+			return genericCleanTextEncodedORAddressFunc(value)
+		},
+	}
 
 	var textEncodedORAddress TextEncodedORAddress
-	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
-	if err != nil {
-		return &ParseError{
-			OrigErr: err,
-			Message: "parse-unmarshal-error",
-			Reason:  fmt.Sprintf("failed to unmarshal %s into TextEncodedORAddress struct", cleanedJSON),
+	var cleanedJSON string
+	for _, cleanFunc := range cleanTextEncodedORAddressFuncs {
+
+		cleanedJSON = cleanFunc(value)
+		err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
+		if err == nil {
+			logMessage.TextEncodedORAddress = &textEncodedORAddress
+			return nil
 		}
+
 	}
-	logMessage.TextEncodedORAddress = &textEncodedORAddress
-	return nil
+
+	return &ParseError{
+		OrigErr: err,
+		Message: "parse-unmarshal-error",
+		Reason:  fmt.Sprintf("failed to unmarshal %s into TextEncodedORAddress struct", cleanedJSON),
+	}
 }
 
 // createDropDown converts a value of the format: "Location#Location#All Locations#Washington#Portland"
