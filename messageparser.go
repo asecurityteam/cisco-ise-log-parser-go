@@ -37,7 +37,7 @@ var eventTypeMap = map[string]IseLogEvent{
 	"5411 NOTICE Failed-Attempt":        SupplicantStoppedResponding,
 	"5434 NOTICE RADIUS":                EndpointConductedFailedAuthentications,
 	"5440 NOTICE RADIUS":                EndpointRestartedEAPSession,
-	"80002 INFO Profiler":               InfoProfilerEndpoint,
+	"80002 INFO  Profiler":              InfoProfilerEndpoint,
 }
 
 // StrToIseLogEvent converts the text label of an ISE log's CVS message to an enum.
