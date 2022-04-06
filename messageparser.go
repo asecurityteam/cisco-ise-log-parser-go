@@ -623,6 +623,17 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 		cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `"]}]}`) // insert potentially closing bracket
 	}
 
+	// Add missing mac key between deviceid and mac values
+	// Part of the regex determined from: https://stackoverflow.com/a/466167
+	regex := regexp.MustCompile("\"deviceid\":\"[0-9a-zA-Z]+\",\"(m(a[^c]|[^a])|[^m])")
+	regexMatches := regex.FindAllString(cleanedJSON, -1)
+	for _, match := range regexMatches {
+		if len(match) >= 2 {
+			replacement := match[:len(match)-2] + `"mac":[` + match[len(match)-2:]
+			cleanedJSON = strings.ReplaceAll(cleanedJSON, match, replacement)
+		}
+	}
+
 	var textEncodedORAddress TextEncodedORAddress
 	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
 	if err != nil {
