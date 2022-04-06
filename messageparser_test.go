@@ -95,6 +95,12 @@ func TestParseMessageCSV(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
+			name:            "Multiple devices in TextEncodedORAddress, missing mac key",
+			log:             "5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\} \\{\"deviceid\": \"xyz\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\}]\\}, sAMAccountName=someone,#015",
+			expectedMarshal: []byte(`{"EventDescription":"Authentication succeeded","EventType":5200,"SAMAccountName":"someone,#015","TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]},{"deviceid":"xyz","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
 			name:            "Wrong type for field - DropDownMap",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, NetworkDeviceGroups=NotADropDownMap`,
 			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
