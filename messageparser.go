@@ -614,8 +614,9 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 
 	cleanedJSON := strings.ReplaceAll(value, `\`, "")
 	cleanedJSON = strings.ReplaceAll(cleanedJSON, " ", "")
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}"deviceid"`, `},{"deviceid"`) // insert potentially missing brackets
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`)                    // insert comma if JSON array is missing it
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}"deviceid"`, `},{"deviceid"`)    // insert potentially missing brackets
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `","deviceid"`, `"]},{"deviceid"`) // insert potentially missing brackets
+	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`)                       // insert comma if JSON array is missing it
 
 	if strings.LastIndex(cleanedJSON, "deviceid") > strings.LastIndex(cleanedJSON, "mac") {
 		cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `","mac":[]}]}`) // insert potentially missing mac field
@@ -802,6 +803,10 @@ func parseEndpointPropertyTextEncoded(logMessage *LogMessage, key string, value 
 					value = strings.ReplaceAll(value, match, replacement)
 				}
 			}
+			return genericCleanTextEncodedORAddressFunc(value)
+		},
+		func(value string) string {
+			value = strings.ReplaceAll(value, `"\\"deviceid"`, `"]},{"deviceid"`) // corner case: add end brackets between mac array and deviceid
 			return genericCleanTextEncodedORAddressFunc(value)
 		},
 	}
