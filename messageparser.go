@@ -902,6 +902,7 @@ func structureLog(rawLog string) (title string, fields []string, err error) {
 	title = sectionSplit[0] // ex. "3002 NOTICE Radius-Accounting"
 
 	body := sectionSplit[1]
+	body = strings.ReplaceAll(body, ",#015", ", #015") // fix end of log so it can be split correctly
 	body = hexEncodeTextEncodedORAddress(body)
 	body = strings.ReplaceAll(body, `\,`, "{COMMA}") // replace escaped commas with "{COMMA}" so that we can split by "," later.
 	body = strings.ReplaceAll(body, `\;`, "{SEMICOLON}")
@@ -941,6 +942,11 @@ func hexEncodeTextEncodedORAddress(body string) string {
 		endIdx = strings.Index(body[startIdx:], "=") + startIdx
 		if endIdx == -1+startIdx {
 			endIdx = len(body) // The texEncodedORAddress field happened to be the last field in the logs
+
+			// Leave ", #015" out of the endcoded string if present
+			if suffix := ", #015"; strings.Contains(body[startIdx:endIdx], suffix) {
+				endIdx -= len(suffix)
+			}
 		} else if newEndIdx := strings.LastIndex(body[:endIdx], ", "); newEndIdx != -1 {
 			endIdx = newEndIdx // Trim off the next key in the body if there is one
 		}
