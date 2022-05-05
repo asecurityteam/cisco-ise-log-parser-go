@@ -97,13 +97,19 @@ func TestParseMessageCSV(t *testing.T) {
 		{
 			name:            "Multiple devices in TextEncodedORAddress, missing mac key",
 			log:             "5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\} \\{\"deviceid\": \"xyz\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\}]\\}, sAMAccountName=someone,#015",
-			expectedMarshal: []byte(`{"EventDescription":"Authentication succeeded","EventType":5200,"SAMAccountName":"someone,#015","TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]},{"deviceid":"xyz","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedMarshal: []byte(`{"EventDescription":"Authentication succeeded","EventType":5200,"SAMAccountName":"someone","TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]},{"deviceid":"xyz","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   nil,
 		},
 		{
 			name:            `Multiple devices in TextEncodedORAddress with a new parsing corner case (invalid character ':' after array element)`,
 			log:             "5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\} \\{\"deviceid\": \"xyz\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\,\"deviceid\": \"xyz123\"\\, \"mac\": [\"11-22-33-44-55\"]\\}]\\}, distinguishedName=CN=asdf,#015",
-			expectedMarshal: []byte(`{"DistinguishedName":"CN=asdf,#015","EventDescription":"Authentication succeeded","EventType":5200,"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]},{"deviceid":"xyz","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55"]},{"deviceid":"xyz123","mac":["11-22-33-44-55"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedMarshal: []byte(`{"DistinguishedName":"CN=asdf","EventDescription":"Authentication succeeded","EventType":5200,"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]},{"deviceid":"xyz","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55"]},{"deviceid":"xyz123","mac":["11-22-33-44-55"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
+			name:            `Error in TextEncodedORAddress with a new parsing corner case (invalid character ',' after top-level value)`,
+			log:             "5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"mac\": [\"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\}]\\},#015",
+			expectedMarshal: []byte(`{"EventDescription":"Authentication succeeded","EventType":5200,"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","mac":["11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
 			expectedError:   nil,
 		},
 		{
