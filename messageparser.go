@@ -86,6 +86,7 @@ var variableDictionary = map[string]string{
 	"hrDeviceDescr":           "HRDeviceDescription",
 	"EndpointMacAddress":      "EndPointMACAddress",
 	"username":                "UserName",
+	"User-Name":               "UserDashName",
 }
 
 // Structs
@@ -285,6 +286,7 @@ type LogMessage struct {
 	UseCase                              *string               `json:",omitempty"`
 	UserAccountControl                   *string               `json:",omitempty"`
 	UserName                             *string               `json:",omitempty"` // Ex. bwayne
+	UserDashName                         *string               `json:",omitempty"` // User-Name not to be confused with UserName
 	UserFetchCountryName                 *string               `json:",omitempty"`
 	UserFetchEmail                       *string               `json:",omitempty"`
 	UserFetchFirstName                   *string               `json:",omitempty"`
