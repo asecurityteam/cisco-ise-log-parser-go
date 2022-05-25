@@ -113,6 +113,12 @@ func TestParseMessageCSV(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
+			name:            `Error in TextEncodedORAddress with a new field present (invalid character ':' after array element)`,
+			log:             "5200 NOTICE Passed-Authentication: Authentication succeeded, textEncodedORAddress=\\{\"devices\": [\\{\"deviceid\": \"abcd\"\\, \"udid\": \"1234\"\\, \"mac\": [\"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"\\, \"11-22-33-44-55\"\\, \"aa-bb-cc-dd-ee\"]\\}]\\},#015",
+			expectedMarshal: []byte(`{"EventDescription":"Authentication succeeded","EventType":5200,"TextEncodedORAddress":{"devices":[{"deviceid":"abcd","udid":"1234","mac":["aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee","11-22-33-44-55","aa-bb-cc-dd-ee"]}]},"MessageDetails":{"UnexpectedFields":{}}}`),
+			expectedError:   nil,
+		},
+		{
 			name:            "Wrong type for field - DropDownMap",
 			log:             `3002 NOTICE Radius-Accounting: RADIUS Accounting watchdog update, NetworkDeviceGroups=NotADropDownMap`,
 			expectedMarshal: []byte(`{"EventDescription":"RADIUS Accounting watchdog update","EventType":3002,"MessageDetails":{"UnexpectedFields":{}}}`),
