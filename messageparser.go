@@ -334,6 +334,7 @@ type TextEncodedORAddress struct {
 // Device is an array item found in the textEncodedORAddress field.
 type Device struct {
 	DeviceID string   `json:"deviceid,omitempty"` // Ex. C02CV1EHML87
+	UDID     string   `json:"udid,omitempty"`     // Ex. 53F36017-ABF7-5E33-CAA7-7534D43B01F2
 	MAC      []string `json:"mac,omitempty"`      // Ex. 1e-76-61-dc-04-44
 }
 
@@ -614,40 +615,62 @@ func parseTextEncodedORAddress(logMessage *LogMessage, key string, value string)
 	}
 	value = string(valueBytes)
 
-	cleanedJSON := strings.ReplaceAll(value, `\`, "")
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, " ", "")
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}"deviceid"`, `},{"deviceid"`)    // insert potentially missing brackets
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `","deviceid"`, `"]},{"deviceid"`) // insert potentially missing brackets
-	cleanedJSON = strings.ReplaceAll(cleanedJSON, `}{`, `},{`)                       // insert comma if JSON array is missing it
-
-	if strings.LastIndex(cleanedJSON, "deviceid") > strings.LastIndex(cleanedJSON, "mac") {
-		cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `","mac":[]}]}`) // insert potentially missing mac field
-	} else {
-		cleanedJSON = strings.ReplaceAll(cleanedJSON, `",]}`, `"]}]}`) // insert potentially closing bracket
+	genericCleanTextEncodedORAddressFunc := func(value string) string {
+		value = strings.ReplaceAll(value, `\`, "")
+		value = strings.ReplaceAll(value, " ", "")
+		value = strings.ReplaceAll(value, `}"deviceid"`, `},{"deviceid"`)    // insert potentially missing brackets
+		value = strings.ReplaceAll(value, `","deviceid"`, `"]},{"deviceid"`) // insert potentially missing brackets
+		return strings.ReplaceAll(value, `}{`, `},{`)                        // insert comma if JSON array is missing it
 	}
 
-	// Add missing mac key between deviceid and mac values
-	// Part of the regex determined from: https://stackoverflow.com/a/466167
-	regex := regexp.MustCompile("\"deviceid\":\"[0-9a-zA-Z]+\",\"(m(a[^c]|[^a])|[^m])")
-	regexMatches := regex.FindAllString(cleanedJSON, -1)
-	for _, match := range regexMatches {
-		if len(match) >= 2 {
-			replacement := match[:len(match)-2] + `"mac":[` + match[len(match)-2:]
-			cleanedJSON = strings.ReplaceAll(cleanedJSON, match, replacement)
-		}
+	cleanTextEncodedORAddressFuncs := []func(string) string{
+		// Generic case
+		genericCleanTextEncodedORAddressFunc,
+		// The remaining functions cover corner cases
+		func(value string) string {
+			value = genericCleanTextEncodedORAddressFunc(value)
+			if strings.LastIndex(value, "deviceid") > strings.LastIndex(value, "mac") {
+				value = strings.ReplaceAll(value, `",]}`, `","mac":[]}]}`) // insert potentially missing mac field
+			} else {
+				value = strings.ReplaceAll(value, `",]}`, `"]}]}`) // insert potentially closing bracket
+			}
+			return value
+		},
+		func(value string) string {
+			value = genericCleanTextEncodedORAddressFunc(value)
+			// Add missing mac key between deviceid and mac values
+			// Part of the regex determined from: https://stackoverflow.com/a/466167
+			regex := regexp.MustCompile("\"deviceid\":\"[0-9a-zA-Z]+\",\"(m(a[^c]|[^a])|[^m])")
+			regexMatches := regex.FindAllString(value, -1)
+			for _, match := range regexMatches {
+				if len(match) >= 2 {
+					replacement := match[:len(match)-2] + `"mac":[` + match[len(match)-2:]
+					value = strings.ReplaceAll(value, match, replacement)
+				}
+			}
+			return value
+		},
 	}
 
 	var textEncodedORAddress TextEncodedORAddress
-	err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
-	if err != nil {
-		return &ParseError{
-			OrigErr: err,
-			Message: "parse-unmarshal-error",
-			Reason:  fmt.Sprintf("failed to unmarshal %s into TextEncodedORAddress struct", cleanedJSON),
+	var cleanedJSON string
+	for _, cleanFunc := range cleanTextEncodedORAddressFuncs {
+
+		cleanedJSON = cleanFunc(value)
+		err = json.Unmarshal([]byte(cleanedJSON), &textEncodedORAddress)
+		if err == nil {
+			logMessage.TextEncodedORAddress = &textEncodedORAddress
+			return nil
 		}
+
 	}
-	logMessage.TextEncodedORAddress = &textEncodedORAddress
-	return nil
+
+	return &ParseError{
+		OrigErr: err,
+		Message: "parse-unmarshal-error",
+		Reason:  fmt.Sprintf("failed to unmarshal %s into TextEncodedORAddress struct", cleanedJSON),
+	}
+
 }
 
 // parseResponse is a custom function to parse the Response field into the Response field of the LogMessage struct.
