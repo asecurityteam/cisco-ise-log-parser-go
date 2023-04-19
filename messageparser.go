@@ -6,6 +6,9 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Consts
@@ -744,7 +747,8 @@ func formatKey(key string) string {
 	for _, removal := range removals {
 		key = strings.ReplaceAll(key, removal, "")
 	}
-	return strings.Title(key)
+	titleCase := cases.Title(language.Und)
+	return titleCase.String(key)
 }
 
 // addUnexpectedKeyValue adds fields that do not currently exist in our Go struct into the UnexpectedFields map
