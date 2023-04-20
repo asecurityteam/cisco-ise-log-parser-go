@@ -744,7 +744,9 @@ func formatKey(key string) string {
 	for _, removal := range removals {
 		key = strings.ReplaceAll(key, removal, "")
 	}
-	return strings.Title(key)
+	// TODO: The strings.Title method is being deprecated and should be updated. cases.Title should be used instead.
+	// There is an issue when you try to use cases.Title that it will parse "EventDescription" as "Eventdescription" which breaks the tests.
+	return strings.Title(key) // nolint:go-lint,staticcheck
 }
 
 // addUnexpectedKeyValue adds fields that do not currently exist in our Go struct into the UnexpectedFields map
