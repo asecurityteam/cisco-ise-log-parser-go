@@ -6,6 +6,9 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Consts
@@ -744,9 +747,9 @@ func formatKey(key string) string {
 	for _, removal := range removals {
 		key = strings.ReplaceAll(key, removal, "")
 	}
-	// TODO: The strings.Title method is being deprecated and should be updated. cases.Title should be used instead.
-	// There is an issue when you try to use cases.Title that it will parse "EventDescription" as "Eventdescription" which breaks the tests.
-	return strings.Title(key) // nolint:go-lint,staticcheck
+
+	caser := cases.Title(language.English, cases.NoLower)
+	return caser.String(key)
 }
 
 // addUnexpectedKeyValue adds fields that do not currently exist in our Go struct into the UnexpectedFields map
