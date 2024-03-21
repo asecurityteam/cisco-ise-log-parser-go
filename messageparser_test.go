@@ -338,6 +338,8 @@ func TestSetField(t *testing.T) {
 			if ok {
 				assert.IsType(t, tt.expectedError, setField(&testObject, tt.field, tt.value))
 			} else {
+				// this will be fixed with switch to https://tip.golang.org/doc/go1.22 with new variables per loop iteration
+				// #nosec G601
 				assert.IsType(t, tt.expectedError, setField(&tt.object, tt.field, tt.value))
 
 			}
@@ -403,6 +405,8 @@ func TestAppendToSlice(t *testing.T) {
 			if ok {
 				assert.IsType(t, tt.expectedError, appendToSlice(&testObject, tt.field, tt.value))
 			} else {
+				// this will be fixed with switch to https://tip.golang.org/doc/go1.22 with new variables per loop iteration
+				// #nosec G601
 				assert.IsType(t, tt.expectedError, appendToSlice(&tt.object, tt.field, tt.value))
 
 			}
@@ -468,6 +472,8 @@ func TestAddToMap(t *testing.T) {
 			if ok {
 				assert.IsType(t, tt.expectedError, addToMap(&testObject, tt.field, "key", tt.value))
 			} else {
+				// this will be fixed with switch to https://tip.golang.org/doc/go1.22 with new variables per loop iteration
+				// #nosec G601
 				assert.IsType(t, tt.expectedError, addToMap(&tt.object, tt.field, "key", tt.value))
 			}
 		})
