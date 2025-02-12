@@ -3,8 +3,8 @@ module github.com/asecurityteam/cisco-ise-log-parser-go
 go 1.19
 
 require (
-	github.com/stretchr/testify v1.8.2
-	golang.org/x/text v0.9.0
+	github.com/stretchr/testify v1.10.0
+	golang.org/x/text v0.22.0
 )
 
 require (
