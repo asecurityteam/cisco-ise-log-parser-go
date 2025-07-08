@@ -1,6 +1,6 @@
 module github.com/asecurityteam/cisco-ise-log-parser-go
 
-go 1.23.0
+go 1.24.5
 
 toolchain go1.24.3
 
